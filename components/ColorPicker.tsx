@@ -27,7 +27,7 @@ export default function ColorPicker({ available, selected, onSelect }: Props) {
             className={[
               'w-12 h-12 rounded-full transition-all active:scale-95',
               bg,
-              isSelected ? 'ring-4 ring-offset-2 ring-teal-500 scale-110' : '',
+              isSelected ? 'ring-4 ring-offset-2 ring-blue-600 scale-110' : '',
               !isAvailable ? 'opacity-25' : 'opacity-100',
             ].join(' ')}
           />

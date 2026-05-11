@@ -104,7 +104,7 @@ function LoginForm() {
 
       {step === 'phone' && (
         <div className="flex flex-col gap-4">
-          <div className="flex items-center border-2 border-gray-200 rounded-2xl overflow-hidden focus-within:border-teal-500 transition-colors">
+          <div className="flex items-center border-2 border-gray-200 rounded-2xl overflow-hidden focus-within:border-blue-600 transition-colors">
             <span className="px-4 py-4 text-gray-500 font-medium bg-gray-50 border-r-2 border-gray-200 text-sm">
               +86
             </span>
@@ -136,7 +136,7 @@ function LoginForm() {
                 value={digit}
                 onChange={e => handleOtpInput(i, e.target.value)}
                 onKeyDown={e => handleOtpKeyDown(i, e)}
-                className="w-12 h-14 text-center text-xl font-bold border-2 border-gray-200 rounded-xl focus:border-teal-500 outline-none transition-colors"
+                className="w-12 h-14 text-center text-xl font-bold border-2 border-gray-200 rounded-xl focus:border-blue-600 outline-none transition-colors"
               />
             ))}
           </div>
@@ -162,7 +162,7 @@ function LoginForm() {
         {step === 'otp' && countdown === 0 && (
           <button
             onClick={sendOtp}
-            className="text-center text-sm text-teal-600 font-medium"
+            className="text-center text-sm text-blue-600 font-medium"
           >
             Resend code
           </button>
@@ -170,7 +170,7 @@ function LoginForm() {
         <button
           onClick={step === 'phone' ? sendOtp : verifyOtp}
           disabled={loading}
-          className="w-full py-4 rounded-2xl bg-teal-500 text-white font-semibold text-lg disabled:opacity-60 active:scale-[0.98] transition-transform"
+          className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg disabled:opacity-60 active:scale-[0.98] transition-transform"
         >
           {loading ? '…' : step === 'phone' ? 'Send code' : 'Verify'}
         </button>

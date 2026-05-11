@@ -51,9 +51,12 @@ export default function StationClient({
     }
   }
 
-  // Pre-select first available color
-  const firstAvailable = COLOR_ORDER.find(c => (available[c] ?? 0) > 0) ?? null
-  const [selectedColor, setSelectedColor] = useState<UmbrellaColor | null>(firstAvailable)
+  // Pre-select a random available color
+  const availableColors = COLOR_ORDER.filter(c => (available[c] ?? 0) > 0)
+  const randomAvailable = availableColors.length > 0
+    ? availableColors[Math.floor(Math.random() * availableColors.length)]
+    : null
+  const [selectedColor, setSelectedColor] = useState<UmbrellaColor | null>(randomAvailable)
   const [view, setView] = useState<View>(activeRental ? 'borrow' : 'borrow') // set properly below
   const [borrowResult, setBorrowResult] = useState<BorrowResult | null>(null)
   const [returnResult, setReturnResult] = useState<ReturnResult | null>(null)
@@ -136,8 +139,8 @@ export default function StationClient({
         )}
         <p className="text-sm text-gray-400">Thank you for using PKU Umbrella Sharing</p>
         <button
-          onClick={() => router.refresh()}
-          className="mt-8 text-teal-600 font-medium text-sm"
+          onClick={() => { window.location.href = `/station/${station.id}` }}
+          className="mt-8 text-blue-600 font-medium text-sm"
         >
           Borrow again →
         </button>
@@ -164,7 +167,7 @@ export default function StationClient({
         <p className="text-gray-400 text-sm mb-8">Return to any station within 24 hours</p>
         <button
           onClick={() => router.push(`/rental/${borrowResult.rentalId}`)}
-          className="w-full py-4 rounded-2xl bg-teal-500 text-white font-semibold text-lg"
+          className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg"
         >
           View my rental
         </button>
@@ -176,7 +179,7 @@ export default function StationClient({
   if (view === 'borrowing' || view === 'returning') {
     return (
       <div className="flex flex-col min-h-dvh items-center justify-center gap-4">
-        <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
         <p className="text-gray-500">{view === 'borrowing' ? 'Confirming borrow…' : 'Processing return…'}</p>
       </div>
     )
@@ -208,9 +211,9 @@ export default function StationClient({
         </div>
         <button
           onClick={executeBorrow}
-          className="w-full py-4 rounded-2xl bg-teal-500 text-white font-semibold text-lg active:scale-[0.98] transition-transform"
+          className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg active:scale-[0.98] transition-transform"
         >
-          Pay ¥30 deposit
+          Pay deposit & rent now
         </button>
       </div>
     )
@@ -229,7 +232,7 @@ export default function StationClient({
       <div className="flex flex-col min-h-dvh">
         {/* Station header */}
         <div className="px-6 pt-12 pb-5 border-b border-gray-100">
-          <p className="text-xs text-teal-600 font-semibold uppercase tracking-wider mb-1">PKU Umbrella</p>
+          <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">PKU Umbrella</p>
           <h1 className="text-xl font-bold text-gray-900">{station.name}</h1>
           <p className="text-sm text-gray-500 mt-0.5">{station.description}</p>
         </div>
@@ -253,7 +256,7 @@ export default function StationClient({
           <div className="flex flex-col gap-3">
             <button
               onClick={() => returnUmbrella(true)}
-              className="w-full py-4 rounded-2xl bg-teal-500 text-white font-semibold text-base active:scale-[0.98] transition-transform"
+              className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-base active:scale-[0.98] transition-transform"
             >
               Return & keep deposit
               <span className="block text-xs font-normal opacity-80 mt-0.5">Instant next borrow — no payment needed</span>
@@ -277,7 +280,7 @@ export default function StationClient({
     <div className="flex flex-col min-h-dvh">
       {/* Station header */}
       <div className="px-6 pt-12 pb-5 border-b border-gray-100">
-        <p className="text-xs text-teal-600 font-semibold uppercase tracking-wider mb-1">PKU Umbrella</p>
+        <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">PKU Umbrella</p>
         <h1 className="text-xl font-bold text-gray-900">{station.name}</h1>
         <p className="text-sm text-gray-500 mt-0.5">{station.description}</p>
       </div>
@@ -306,7 +309,7 @@ export default function StationClient({
         )}
 
         {depositOnFile && userId && (
-          <div className="mt-6 bg-teal-50 rounded-xl px-4 py-3 text-sm text-teal-700">
+          <div className="mt-6 bg-blue-50 rounded-xl px-4 py-3 text-sm text-blue-700">
             ✓ Deposit on file — borrow instantly with one tap
           </div>
         )}
@@ -335,7 +338,7 @@ export default function StationClient({
         <button
           onClick={borrow}
           disabled={!hasUmbrellas}
-          className="w-full py-4 rounded-2xl bg-teal-500 text-white font-semibold text-lg disabled:opacity-40 active:scale-[0.98] transition-transform"
+          className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg disabled:opacity-40 active:scale-[0.98] transition-transform"
         >
           {!userId ? 'Log in to borrow' : 'Borrow umbrella'}
         </button>

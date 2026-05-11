@@ -57,7 +57,7 @@ export default async function RentalPage({ params }: Props) {
     <div className="flex flex-col min-h-dvh">
       {/* Header */}
       <div className="px-6 pt-12 pb-5 border-b border-gray-100">
-        <p className="text-xs text-teal-600 font-semibold uppercase tracking-wider mb-1">Active rental</p>
+        <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Active rental</p>
         <div className="flex items-center gap-2">
           <div className={`w-5 h-5 rounded-full ${colorInfo.bg}`} />
           <h1 className="text-xl font-bold text-gray-900">#{umbrellaShort} · {colorInfo.label}</h1>
