@@ -51,12 +51,8 @@ export default function StationClient({
     }
   }
 
-  // Pre-select a random available color
-  const availableColors = COLOR_ORDER.filter(c => (available[c] ?? 0) > 0)
-  const randomAvailable = availableColors.length > 0
-    ? availableColors[Math.floor(Math.random() * availableColors.length)]
-    : null
-  const [selectedColor, setSelectedColor] = useState<UmbrellaColor | null>(randomAvailable)
+  // Default to random (null = let server pick any available color)
+  const [selectedColor, setSelectedColor] = useState<UmbrellaColor | null>(null)
   const [view, setView] = useState<View>(activeRental ? 'borrow' : 'borrow') // set properly below
   const [borrowResult, setBorrowResult] = useState<BorrowResult | null>(null)
   const [returnResult, setReturnResult] = useState<ReturnResult | null>(null)
@@ -302,9 +298,9 @@ export default function StationClient({
               selected={selectedColor}
               onSelect={setSelectedColor}
             />
-            {selectedColor && (
-              <p className="text-center text-sm text-gray-400 mt-3">{COLORS[selectedColor].label} selected</p>
-            )}
+            <p className="text-center text-sm text-gray-400 mt-3">
+              {selectedColor ? `${COLORS[selectedColor].label} selected` : 'Random color'}
+            </p>
           </>
         )}
 
