@@ -60,6 +60,7 @@ export default function MapSheetLayout({
             top: `${imageTop}px`,
             left: `calc(50% - ${IMAGE_W / 2}px)`,
             width: `${IMAGE_W}px`,
+            maxWidth: 'none',
             height: `${IMAGE_H}px`,
             pointerEvents: 'none',
             userSelect: 'none',
