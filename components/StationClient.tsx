@@ -132,10 +132,11 @@ export default function StationClient({
         )}
         <p className="text-sm text-gray-400">Thank you for using ShadeShare</p>
         <button
-          onClick={() => { window.location.href = `/station/${station.id}` }}
-          className="mt-8 text-blue-600 font-medium text-sm"
+          onClick={() => { setActionLoading(true); window.location.href = `/station/${station.id}` }}
+          disabled={actionLoading}
+          className="mt-8 text-blue-600 font-medium text-sm disabled:opacity-50 active:scale-95 transition-transform"
         >
-          Borrow again →
+          {actionLoading ? 'Loading…' : 'Borrow again →'}
         </button>
       </div>
     )
