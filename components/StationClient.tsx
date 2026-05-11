@@ -90,9 +90,11 @@ export default function StationClient({
       if (!res.ok) throw new Error(data.error ?? 'Failed to borrow')
       setBorrowResult(data)
       setView('borrow-success')
+      setActionLoading(false)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong')
       setView('borrow')
+      setActionLoading(false)
     }
   }
 
@@ -111,8 +113,10 @@ export default function StationClient({
       if (!res.ok) throw new Error(data.error ?? 'Failed to return')
       setReturnResult({ keptDeposit: keepDeposit })
       setView('return-success')
+      setActionLoading(false)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong')
+      setActionLoading(false)
       router.refresh()
     }
   }
