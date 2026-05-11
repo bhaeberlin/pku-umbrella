@@ -1,10 +1,14 @@
 // [lon, lat] for each PKU station — used to generate Mapbox static map images
+// TODO: replace placeholder coords with real ones measured on campus
 export const STATION_COORDS: Record<string, [number, number]> = {
-  'PKU-LIB-01':  [116.3047, 39.9985],
-  'PKU-CAN-01':  [116.3054, 39.9976],
-  'PKU-GATE-01': [116.3120, 39.9937],
-  'PKU-DORM-01': [116.3020, 39.9997],
-  'PKU-GYM-01':  [116.3068, 39.9950],
+  'PKU-GUA1-01':   [116.3108, 39.9924],  // Guanghua Building 1
+  'PKU-SEGATE-01': [116.3108, 39.9924],  // Southeast Gate
+  'PKU-GV3-01':    [116.3108, 39.9924],  // Global Village Building 3
+  'PKU-GV4-01':    [116.3108, 39.9924],  // Global Village Building 4
+  'PKU-GV1-01':    [116.3108, 39.9924],  // Global Village Building 1
+  'PKU-3WC-01':    [116.3108, 39.9924],  // 3W Cafe
+  'PKU-YNC-01':    [116.3108, 39.9924],  // Yannan Cantine
+  'PKU-NYC-01':    [116.3108, 39.9924],  // Nongyuan Cantine
 }
 
 export function stationMapUrl(stationId: string): string {
