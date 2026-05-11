@@ -58,6 +58,7 @@ export default function StationClient({
   const [borrowResult, setBorrowResult]   = useState<BorrowResult | null>(null)
   const [returnResult, setReturnResult]   = useState<ReturnResult | null>(null)
   const [error, setError]                 = useState('')
+  const [actionLoading, setActionLoading] = useState(false)
 
   const hasActiveRental = !!activeRental
   const hasUmbrellas    = station.available > 0
@@ -72,10 +73,12 @@ export default function StationClient({
       setView('deposit')
       return
     }
+    setActionLoading(true)
     await executeBorrow()
   }
 
   async function executeBorrow() {
+    setActionLoading(true)
     setView('borrowing')
     try {
       const res = await fetch('/api/borrow', {
@@ -95,6 +98,7 @@ export default function StationClient({
 
   async function returnUmbrella(keepDeposit: boolean) {
     if (!activeRental) return
+    setActionLoading(true)
     setView('returning')
     setError('')
     try {
@@ -197,9 +201,12 @@ export default function StationClient({
         </div>
         <button
           onClick={executeBorrow}
-          className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg active:scale-[0.98] transition-transform"
+          disabled={actionLoading}
+          className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg active:scale-[0.98] transition-transform disabled:opacity-70"
         >
-          Pay deposit & rent now
+          {actionLoading
+            ? <span className="flex items-center justify-center gap-2"><span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Processing…</span>
+            : 'Pay deposit & rent now'}
         </button>
       </div>
     )
@@ -230,16 +237,19 @@ export default function StationClient({
           <div className="flex flex-col gap-3">
             <button
               onClick={() => returnUmbrella(true)}
-              className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-base active:scale-[0.98] transition-transform"
+              disabled={actionLoading}
+              className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-base active:scale-[0.98] transition-transform disabled:opacity-70"
             >
-              Return & keep deposit
-              <span className="block text-xs font-normal opacity-80 mt-0.5">Instant next borrow — no payment needed</span>
+              {actionLoading
+                ? <span className="flex items-center justify-center gap-2"><span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Processing…</span>
+                : <><span>Return & keep deposit</span><span className="block text-xs font-normal opacity-80 mt-0.5">Instant next borrow — no payment needed</span></>}
             </button>
             <button
               onClick={() => returnUmbrella(false)}
-              className="w-full py-4 rounded-2xl border-2 border-gray-200 text-gray-700 font-semibold text-base active:scale-[0.98] transition-transform"
+              disabled={actionLoading}
+              className="w-full py-4 rounded-2xl border-2 border-gray-200 text-gray-700 font-semibold text-base active:scale-[0.98] transition-transform disabled:opacity-70"
             >
-              Return & refund ¥30
+              {actionLoading ? '…' : 'Return & refund ¥30'}
             </button>
           </div>
         }
@@ -272,10 +282,12 @@ export default function StationClient({
       footer={
         <button
           onClick={borrow}
-          disabled={!hasUmbrellas}
+          disabled={!hasUmbrellas || actionLoading}
           className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg disabled:opacity-40 active:scale-[0.98] transition-transform"
         >
-          {!userId ? 'Log in to borrow' : 'Borrow umbrella'}
+          {actionLoading
+            ? <span className="flex items-center justify-center gap-2"><span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Processing…</span>
+            : (!userId ? 'Log in to borrow' : 'Borrow umbrella')}
         </button>
       }
     >
