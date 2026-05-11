@@ -159,10 +159,13 @@ export default function StationClient({
         <p className="text-gray-500 text-sm mb-2">{station.name}</p>
         <p className="text-gray-400 text-sm mb-8">Return to any station within 24 hours</p>
         <button
-          onClick={() => router.push(`/rental/${borrowResult.rentalId}`)}
-          className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg"
+          onClick={() => { setActionLoading(true); router.push(`/rental/${borrowResult.rentalId}`) }}
+          disabled={actionLoading}
+          className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg disabled:opacity-70 active:scale-[0.98] transition-transform"
         >
-          View my rental
+          {actionLoading
+            ? <span className="flex items-center justify-center gap-2"><span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Loading…</span>
+            : 'View my rental'}
         </button>
       </div>
     )
