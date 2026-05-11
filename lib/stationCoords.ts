@@ -12,5 +12,5 @@ export function stationMapUrl(stationId: string): string {
   const coords = STATION_COORDS[stationId]
   if (!token || !coords) return ''
   const [lon, lat] = coords
-  return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-s+1d4ed8(${lon},${lat})/${lon},${lat},17/600x900@2x?access_token=${token}`
+  return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-s+1d4ed8(${lon},${lat})/${lon},${lat},17/430x900@2x?access_token=${token}`
 }

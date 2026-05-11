@@ -36,10 +36,10 @@ interface ReturnResult {
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 const SNAP_HIGH = 160   // px from top: collapsed (small map strip)
-const IMAGE_W   = 600   // Mapbox image CSS width — wider than viewport for pan
+const IMAGE_W   = 430   // Mapbox image CSS width — matches viewport, no horizontal overflow
 const IMAGE_H   = 900   // Mapbox image CSS height — tall enough for any phone
 const HANDLE_H  = 28    // handle pill area (pt-3 + pill + pb-2)
-const PAN_X_MAX = 80    // max horizontal pan (image overhangs ~85px each side)
+const PAN_X_MAX = 0     // no horizontal overhang — image fills viewport exactly
 const PAN_Y_MAX = 40    // max vertical pan
 
 const EASING     = 'cubic-bezier(0.32,0.72,0,1)'
@@ -221,8 +221,8 @@ function MapSheetLayout({
           style={{
             position: 'absolute',
             top: `${imageTop}px`,
-            left: `calc(50% - ${IMAGE_W / 2}px)`,
-            width: `${IMAGE_W}px`,
+            left: 0,
+            width: '100%',
             height: `${IMAGE_H}px`,
             pointerEvents: 'none',
             userSelect: 'none',
