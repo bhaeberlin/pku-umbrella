@@ -34,42 +34,105 @@ interface ReturnResult {
   keptDeposit: boolean
 }
 
-const SNAP_HIGH = 160  // default: small map stripe visible
-const SNAP_LOW  = 320  // expanded: more map visible
+const SNAP_HIGH = 160   // default: small map stripe
+const SNAP_LOW  = 320   // expanded: more map
+const IMAGE_H   = 400   // Mapbox image height in CSS px
 
-function useBottomSheet() {
-  const [sheetY, setSheetY] = useState(SNAP_HIGH)
-  const [dragging, setDragging] = useState(false)
-  const dragStartY = useRef(0)
-  const dragStartSheet = useRef(0)
+const EASING = 'cubic-bezier(0.32,0.72,0,1)'
+const TRANSITION = `280ms ${EASING}`
 
-  function onTouchStart(e: React.TouchEvent) {
-    setDragging(true)
-    dragStartY.current = e.touches[0].clientY
-    dragStartSheet.current = sheetY
-  }
-
-  function onTouchMove(e: React.TouchEvent) {
-    const delta = e.touches[0].clientY - dragStartY.current
-    const newY = Math.max(SNAP_HIGH, Math.min(SNAP_LOW, dragStartSheet.current + delta))
-    setSheetY(newY)
-  }
-
-  function onTouchEnd() {
-    setDragging(false)
-    const mid = (SNAP_HIGH + SNAP_LOW) / 2
-    setSheetY(sheetY < mid ? SNAP_HIGH : SNAP_LOW)
-  }
-
-  return { sheetY, dragging, onTouchStart, onTouchMove, onTouchEnd }
+function ChevronDownIcon() {
+  return (
+    <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  )
 }
 
-// Wrapper that puts a static map behind content with a draggable bottom sheet
+function ChevronUpIcon() {
+  return (
+    <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="18 15 12 9 6 15"/>
+    </svg>
+  )
+}
+
+function useBottomSheet() {
+  const [sheetY, setSheetY]     = useState(SNAP_HIGH)
+  const [dragging, setDragging] = useState(false)
+  const dragStartY      = useRef(0)
+  const dragStartSheet  = useRef(0)
+  const isDraggingSheet = useRef(false)   // ref to avoid stale closure
+  const scrollRef       = useRef<HTMLDivElement>(null)
+
+  function snap(y: number) {
+    const mid = (SNAP_HIGH + SNAP_LOW) / 2
+    setSheetY(y < mid ? SNAP_HIGH : SNAP_LOW)
+  }
+
+  // ── handle drag (pill handle only) ──────────────────────────────────────────
+  const handleHandlers = {
+    onTouchStart(e: React.TouchEvent) {
+      setDragging(true)
+      dragStartY.current     = e.touches[0].clientY
+      dragStartSheet.current = sheetY
+    },
+    onTouchMove(e: React.TouchEvent) {
+      const delta = e.touches[0].clientY - dragStartY.current
+      setSheetY(Math.max(SNAP_HIGH, Math.min(SNAP_LOW, dragStartSheet.current + delta)))
+    },
+    onTouchEnd() {
+      setDragging(false)
+      snap(sheetY)
+    },
+  }
+
+  // ── content drag (scroll-aware) ─────────────────────────────────────────────
+  const contentHandlers = {
+    onTouchStart(e: React.TouchEvent) {
+      dragStartY.current     = e.touches[0].clientY
+      dragStartSheet.current = sheetY
+      isDraggingSheet.current = false
+    },
+    onTouchMove(e: React.TouchEvent) {
+      const delta     = e.touches[0].clientY - dragStartY.current
+      const scrollTop = scrollRef.current?.scrollTop ?? 0
+
+      // Commit to sheet-drag when moving down from scroll top
+      if (!isDraggingSheet.current && delta > 6 && scrollTop === 0) {
+        isDraggingSheet.current = true
+        setDragging(true)
+      }
+      if (isDraggingSheet.current) {
+        setSheetY(Math.max(SNAP_HIGH, Math.min(SNAP_LOW, dragStartSheet.current + delta)))
+      }
+    },
+    onTouchEnd() {
+      if (isDraggingSheet.current) {
+        snap(sheetY)
+        isDraggingSheet.current = false
+        setDragging(false)
+      }
+    },
+  }
+
+  function toggleSnap() {
+    setSheetY(prev => prev <= SNAP_HIGH ? SNAP_LOW : SNAP_HIGH)
+  }
+
+  // Pin-centered image positioning: pin is at IMAGE_H/2 from image top,
+  // we want it at sheetY/2 from screen top → imageTop = sheetY/2 - IMAGE_H/2
+  const imageTop   = sheetY / 2 - IMAGE_H / 2
+  // Slight zoom-out as map expands (1.0 → 0.88)
+  const imageScale = 1 - ((sheetY - SNAP_HIGH) / (SNAP_LOW - SNAP_HIGH)) * 0.12
+  const isExpanded = sheetY >= SNAP_LOW
+
+  return { sheetY, dragging, imageTop, imageScale, isExpanded, toggleSnap,
+           handleHandlers, contentHandlers, scrollRef }
+}
+
 function MapSheetLayout({
-  stationId,
-  sheet,
-  children,
-  footer,
+  stationId, sheet, children, footer,
 }: {
   stationId: string
   sheet: ReturnType<typeof useBottomSheet>
@@ -77,45 +140,67 @@ function MapSheetLayout({
   footer?: React.ReactNode
 }) {
   const mapUrl = stationMapUrl(stationId)
-  const { sheetY, dragging, onTouchStart, onTouchMove, onTouchEnd } = sheet
+  const { sheetY, dragging, imageTop, imageScale, isExpanded, toggleSnap,
+          handleHandlers, contentHandlers, scrollRef } = sheet
+  const t = dragging ? 'none' : TRANSITION
 
   return (
     <div className="relative h-dvh overflow-hidden bg-gray-200">
-      {/* Map background */}
+
+      {/* Map image — pin centered in visible strip, subtle zoom */}
       {mapUrl && (
         <img
           src={mapUrl}
-          alt=""
-          aria-hidden="true"
-          className="absolute top-0 left-0 w-full"
-          style={{ height: `${SNAP_LOW + 80}px`, objectFit: 'cover', objectPosition: 'center top' }}
+          alt="" aria-hidden="true"
+          className="absolute left-0 w-full select-none pointer-events-none"
+          style={{
+            top: `${imageTop}px`,
+            height: `${IMAGE_H}px`,
+            objectFit: 'cover',
+            transform: `scale(${imageScale.toFixed(4)})`,
+            transformOrigin: '50% 50%',
+            transition: dragging ? 'none' : `top ${TRANSITION}, transform ${TRANSITION}`,
+          }}
         />
       )}
 
+      {/* Map overlay — toggle button in bottom-right of visible strip */}
+      <div
+        className="absolute inset-x-0 top-0 flex items-end justify-end pb-3 pr-4 pointer-events-none"
+        style={{ height: `${sheetY}px`, transition: dragging ? 'none' : `height ${TRANSITION}` }}
+      >
+        <button
+          onClick={toggleSnap}
+          className="pointer-events-auto w-9 h-9 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center shadow active:scale-95 transition-transform"
+          aria-label={isExpanded ? 'Collapse map' : 'Expand map'}
+        >
+          {isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
+        </button>
+      </div>
+
       {/* Bottom sheet */}
       <div
-        className="absolute left-0 right-0 bottom-0 bg-white rounded-t-3xl shadow-2xl flex flex-col"
-        style={{
-          top: `${sheetY}px`,
-          transition: dragging ? 'none' : 'top 280ms cubic-bezier(0.32,0.72,0,1)',
-        }}
+        className="absolute inset-x-0 bottom-0 bg-white rounded-t-3xl shadow-2xl flex flex-col"
+        style={{ top: `${sheetY}px`, transition: t ? `top ${t}` : 'none' }}
       >
-        {/* Drag handle */}
+        {/* Drag handle pill */}
         <div
           className="flex-shrink-0 pt-3 pb-2 cursor-grab active:cursor-grabbing select-none"
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
+          {...handleHandlers}
         >
           <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto" />
         </div>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto min-h-0">
+        {/* Scrollable content — drag from here too */}
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto min-h-0"
+          {...contentHandlers}
+        >
           {children}
         </div>
 
-        {/* Footer (fixed-to-sheet bottom button) */}
+        {/* Footer — NOT a drag target (buttons live here) */}
         {footer && (
           <div className="flex-shrink-0 px-6 pb-8 pt-4 bg-white border-t border-gray-100">
             {footer}
