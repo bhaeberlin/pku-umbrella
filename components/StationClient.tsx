@@ -134,7 +134,7 @@ export default function StationClient({
         ) : (
           <p className="text-gray-500 mb-8">¥30 deposit refunded. Thank you!</p>
         )}
-        <p className="text-sm text-gray-400">Thank you for using ShadeShare</p>
+        <p className="text-sm text-gray-400">Thank you for using Líng Sǎn 灵伞</p>
         <button
           onClick={() => { setActionLoading(true); window.location.href = `/station/${station.id}` }}
           disabled={actionLoading}
@@ -223,7 +223,7 @@ export default function StationClient({
   // Shared sticky header for both borrow and return map views
   const stationHeader = (
     <div className="px-6 pt-1 pb-4">
-      <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">ShadeShare — Umbrellas @ PKU</p>
+      <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Líng Sǎn 灵伞 — Umbrellas @ PKU</p>
       <h1 className="text-xl font-bold text-gray-900">{station.name}</h1>
       <p className="text-sm text-gray-500 mt-0.5">{station.description}</p>
     </div>
