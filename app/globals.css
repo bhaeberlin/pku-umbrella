@@ -5,6 +5,10 @@
   --foreground: #111111;
 }
 
+html {
+  overscroll-behavior-y: none;   /* prevent Safari pull-to-refresh */
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -13,4 +17,5 @@ body {
   max-width: 430px;
   margin: 0 auto;
   min-height: 100dvh;
+  overscroll-behavior-y: none;
 }
