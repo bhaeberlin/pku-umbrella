@@ -299,7 +299,7 @@ export default function StationClient({
               onSelect={setSelectedColor}
             />
             <p className="text-center text-sm text-gray-400 mt-3">
-              {selectedColor ? `${COLORS[selectedColor].label} selected` : 'Random color'}
+              {selectedColor ? `${COLORS[selectedColor].label} selected` : 'Choose for me'}
             </p>
           </>
         )}

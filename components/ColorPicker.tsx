@@ -9,16 +9,6 @@ interface Props {
   onSelect: (color: UmbrellaColor | null) => void
 }
 
-function ShuffleIcon() {
-  return (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="16 3 21 3 21 8"/>
-      <line x1="4" y1="20" x2="21" y2="3"/>
-      <polyline points="21 16 21 21 16 21"/>
-      <line x1="15" y1="15" x2="21" y2="21"/>
-    </svg>
-  )
-}
 
 export default function ColorPicker({ available, selected, onSelect }: Props) {
   const isRandom = selected === null
@@ -35,7 +25,7 @@ export default function ColorPicker({ available, selected, onSelect }: Props) {
           isRandom ? 'ring-4 ring-offset-2 ring-blue-600 scale-110' : '',
         ].join(' ')}
       >
-        <ShuffleIcon />
+        <span className="text-xl">🎲</span>
       </button>
 
       {/* Color options */}
