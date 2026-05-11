@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'PKU 雨伞共享 · Umbrella Share',
-  description: 'Borrow and return umbrellas across the PKU campus',
+  title: 'ShadeShare · Umbrellas @ PKU',
+  description: 'Borrow and return umbrellas across the PKU campus with ShadeShare',
 }
 
 export const viewport: Viewport = {

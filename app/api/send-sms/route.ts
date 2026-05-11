@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   }
 
   const phone_clean = phone.replace('+86', '').replace(/\s/g, '')
-  const message = `【PKU雨伞】您的验证码是 ${otp}，5分钟内有效。`
+  const message = `【ShadeShare】您的验证码是 ${otp}，5分钟内有效。`
 
   const url = new URL('https://api.smsbao.com/sms')
   url.searchParams.set('u', process.env.SMSBAO_USERNAME)
