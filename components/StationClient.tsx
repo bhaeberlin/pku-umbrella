@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import ColorPicker from './ColorPicker'
 import { COLORS, COLOR_ORDER } from '@/lib/colors'
+import { stationMapUrl } from '@/lib/stationCoords'
 import type { Station, Umbrella, UmbrellaColor, RentalWithDetails } from '@/lib/types'
 
 interface Props {
@@ -33,6 +34,98 @@ interface ReturnResult {
   keptDeposit: boolean
 }
 
+const SNAP_HIGH = 160  // default: small map stripe visible
+const SNAP_LOW  = 320  // expanded: more map visible
+
+function useBottomSheet() {
+  const [sheetY, setSheetY] = useState(SNAP_HIGH)
+  const [dragging, setDragging] = useState(false)
+  const dragStartY = useRef(0)
+  const dragStartSheet = useRef(0)
+
+  function onTouchStart(e: React.TouchEvent) {
+    setDragging(true)
+    dragStartY.current = e.touches[0].clientY
+    dragStartSheet.current = sheetY
+  }
+
+  function onTouchMove(e: React.TouchEvent) {
+    const delta = e.touches[0].clientY - dragStartY.current
+    const newY = Math.max(SNAP_HIGH, Math.min(SNAP_LOW, dragStartSheet.current + delta))
+    setSheetY(newY)
+  }
+
+  function onTouchEnd() {
+    setDragging(false)
+    const mid = (SNAP_HIGH + SNAP_LOW) / 2
+    setSheetY(sheetY < mid ? SNAP_HIGH : SNAP_LOW)
+  }
+
+  return { sheetY, dragging, onTouchStart, onTouchMove, onTouchEnd }
+}
+
+// Wrapper that puts a static map behind content with a draggable bottom sheet
+function MapSheetLayout({
+  stationId,
+  sheet,
+  children,
+  footer,
+}: {
+  stationId: string
+  sheet: ReturnType<typeof useBottomSheet>
+  children: React.ReactNode
+  footer?: React.ReactNode
+}) {
+  const mapUrl = stationMapUrl(stationId)
+  const { sheetY, dragging, onTouchStart, onTouchMove, onTouchEnd } = sheet
+
+  return (
+    <div className="relative h-dvh overflow-hidden bg-gray-200">
+      {/* Map background */}
+      {mapUrl && (
+        <img
+          src={mapUrl}
+          alt=""
+          aria-hidden="true"
+          className="absolute top-0 left-0 w-full"
+          style={{ height: `${SNAP_LOW + 80}px`, objectFit: 'cover', objectPosition: 'center top' }}
+        />
+      )}
+
+      {/* Bottom sheet */}
+      <div
+        className="absolute left-0 right-0 bottom-0 bg-white rounded-t-3xl shadow-2xl flex flex-col"
+        style={{
+          top: `${sheetY}px`,
+          transition: dragging ? 'none' : 'top 280ms cubic-bezier(0.32,0.72,0,1)',
+        }}
+      >
+        {/* Drag handle */}
+        <div
+          className="flex-shrink-0 pt-3 pb-2 cursor-grab active:cursor-grabbing select-none"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
+          <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto" />
+        </div>
+
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {children}
+        </div>
+
+        {/* Footer (fixed-to-sheet bottom button) */}
+        {footer && (
+          <div className="flex-shrink-0 px-6 pb-8 pt-4 bg-white border-t border-gray-100">
+            {footer}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function StationClient({
   station,
   umbrellas,
@@ -42,6 +135,7 @@ export default function StationClient({
   allStations,
 }: Props) {
   const router = useRouter()
+  const sheet = useBottomSheet()
 
   // Count available umbrellas per color
   const available: Record<string, number> = {}
@@ -51,14 +145,12 @@ export default function StationClient({
     }
   }
 
-  // Default to random (null = let server pick any available color)
   const [selectedColor, setSelectedColor] = useState<UmbrellaColor | null>(null)
-  const [view, setView] = useState<View>(activeRental ? 'borrow' : 'borrow') // set properly below
+  const [view, setView] = useState<View>('borrow')
   const [borrowResult, setBorrowResult] = useState<BorrowResult | null>(null)
   const [returnResult, setReturnResult] = useState<ReturnResult | null>(null)
   const [error, setError] = useState('')
 
-  // Determine initial display state
   const hasActiveRental = !!activeRental
   const hasUmbrellas = station.available > 0
 
@@ -68,12 +160,10 @@ export default function StationClient({
       return
     }
     setError('')
-
     if (!depositOnFile) {
       setView('deposit')
       return
     }
-
     await executeBorrow()
   }
 
@@ -103,11 +193,7 @@ export default function StationClient({
       const res = await fetch('/api/return', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          rentalId: activeRental.id,
-          stationId: station.id,
-          keepDeposit,
-        }),
+        body: JSON.stringify({ rentalId: activeRental.id, stationId: station.id, keepDeposit }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Failed to return')
@@ -115,7 +201,6 @@ export default function StationClient({
       setView('return-success')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong')
-      // Stay on return view — reload page to get fresh state
       router.refresh()
     }
   }
@@ -186,10 +271,7 @@ export default function StationClient({
     const colorInfo = selectedColor ? COLORS[selectedColor] : COLORS.black
     return (
       <div className="flex flex-col min-h-dvh px-6 pt-12 pb-8">
-        <button
-          onClick={() => setView('borrow')}
-          className="text-gray-400 text-sm mb-8 text-left"
-        >
+        <button onClick={() => setView('borrow')} className="text-gray-400 text-sm mb-8 text-left">
           ← Back
         </button>
         <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
@@ -218,37 +300,15 @@ export default function StationClient({
   // ── RETURN VIEW ─────────────────────────────────────────────────────────────
   if (hasActiveRental && activeRental) {
     const elapsed = Math.floor((Date.now() - new Date(activeRental.borrowed_at).getTime()) / 60000)
-    const elapsedText = elapsed < 60
-      ? `${elapsed}m ago`
-      : `${Math.floor(elapsed / 60)}h ${elapsed % 60}m ago`
+    const elapsedText = elapsed < 60 ? `${elapsed}m ago` : `${Math.floor(elapsed / 60)}h ${elapsed % 60}m ago`
     const colorInfo = COLORS[activeRental.umbrella.color] ?? COLORS.black
     const umbrellaShort = activeRental.umbrella_id.slice(-4).toUpperCase()
 
     return (
-      <div className="flex flex-col min-h-dvh">
-        {/* Station header */}
-        <div className="px-6 pt-12 pb-5 border-b border-gray-100">
-          <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">PKU Umbrella</p>
-          <h1 className="text-xl font-bold text-gray-900">{station.name}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{station.description}</p>
-        </div>
-
-        <div className="flex-1 px-6 pt-6 pb-32">
-          {/* Active rental card */}
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6">
-            <p className="text-xs text-amber-700 font-semibold uppercase tracking-wider mb-2">Active rental</p>
-            <div className="flex items-center gap-2">
-              <div className={`w-4 h-4 rounded-full ${colorInfo.bg}`} />
-              <span className="font-semibold text-gray-800">#{umbrellaShort} · {colorInfo.label}</span>
-              <span className="text-gray-400 text-sm ml-auto">{elapsedText}</span>
-            </div>
-          </div>
-
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">Return here?</h2>
-          <p className="text-gray-500 text-sm mb-6">{station.name} · {station.description}</p>
-
-          {/* Deposit choice buttons */}
-          <p className="text-sm font-medium text-gray-600 mb-3">What would you like to do with your ¥30 deposit?</p>
+      <MapSheetLayout
+        stationId={station.id}
+        sheet={sheet}
+        footer={
           <div className="flex flex-col gap-3">
             <button
               onClick={() => returnUmbrella(true)}
@@ -264,25 +324,51 @@ export default function StationClient({
               Return & refund ¥30
             </button>
           </div>
+        }
+      >
+        <div className="px-6 pt-2 pb-6">
+          <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">PKU Umbrella</p>
+          <h1 className="text-xl font-bold text-gray-900">{station.name}</h1>
+          <p className="text-sm text-gray-500 mt-0.5 mb-5">{station.description}</p>
 
-          {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5">
+            <p className="text-xs text-amber-700 font-semibold uppercase tracking-wider mb-2">Active rental</p>
+            <div className="flex items-center gap-2">
+              <div className={`w-4 h-4 rounded-full ${colorInfo.bg}`} />
+              <span className="font-semibold text-gray-800">#{umbrellaShort} · {colorInfo.label}</span>
+              <span className="text-gray-400 text-sm ml-auto">{elapsedText}</span>
+            </div>
+          </div>
+
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">Return here?</h2>
+          <p className="text-gray-500 text-sm mb-4">{station.name} · {station.description}</p>
+          <p className="text-sm font-medium text-gray-600">What would you like to do with your ¥30 deposit?</p>
+          {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
         </div>
-      </div>
+      </MapSheetLayout>
     )
   }
 
   // ── BORROW VIEW ─────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col min-h-dvh">
-      {/* Station header */}
-      <div className="px-6 pt-12 pb-5 border-b border-gray-100">
+    <MapSheetLayout
+      stationId={station.id}
+      sheet={sheet}
+      footer={
+        <button
+          onClick={borrow}
+          disabled={!hasUmbrellas}
+          className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg disabled:opacity-40 active:scale-[0.98] transition-transform"
+        >
+          {!userId ? 'Log in to borrow' : 'Borrow umbrella'}
+        </button>
+      }
+    >
+      <div className="px-6 pt-2 pb-6">
         <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">PKU Umbrella</p>
         <h1 className="text-xl font-bold text-gray-900">{station.name}</h1>
-        <p className="text-sm text-gray-500 mt-0.5">{station.description}</p>
-      </div>
+        <p className="text-sm text-gray-500 mt-0.5 mb-5">{station.description}</p>
 
-      <div className="flex-1 px-6 pt-6 pb-36">
-        {/* Availability */}
         <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium mb-6 ${
           hasUmbrellas ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
         }`}>
@@ -293,11 +379,7 @@ export default function StationClient({
         {hasUmbrellas && (
           <>
             <p className="text-sm font-medium text-gray-600 mb-4">Choose a color</p>
-            <ColorPicker
-              available={available}
-              selected={selectedColor}
-              onSelect={setSelectedColor}
-            />
+            <ColorPicker available={available} selected={selectedColor} onSelect={setSelectedColor} />
             <p className="text-center text-sm text-gray-400 mt-3">
               {selectedColor ? `${COLORS[selectedColor].label} selected` : 'Choose for me'}
             </p>
@@ -328,17 +410,6 @@ export default function StationClient({
           </div>
         )}
       </div>
-
-      {/* Fixed bottom CTA */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-6 pb-8 pt-4 bg-white border-t border-gray-100">
-        <button
-          onClick={borrow}
-          disabled={!hasUmbrellas}
-          className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg disabled:opacity-40 active:scale-[0.98] transition-transform"
-        >
-          {!userId ? 'Log in to borrow' : 'Borrow umbrella'}
-        </button>
-      </div>
-    </div>
+    </MapSheetLayout>
   )
 }
