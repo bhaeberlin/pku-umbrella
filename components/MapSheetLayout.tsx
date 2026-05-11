@@ -2,7 +2,7 @@
 
 import { useRef, useLayoutEffect } from 'react'
 import { stationMapUrl } from '@/lib/stationCoords'
-import { useBottomSheet, IMAGE_H, HANDLE_H, TRANSITION } from '@/hooks/useBottomSheet'
+import { useBottomSheet, IMAGE_W, IMAGE_H, HANDLE_H, TRANSITION } from '@/hooks/useBottomSheet'
 
 function ChevronDownIcon() {
   return (
@@ -49,7 +49,7 @@ export default function MapSheetLayout({
   return (
     <div className="relative h-dvh overflow-hidden bg-gray-200">
 
-      {/* Map image — overhangs sides 40px each for pan, pin-centered vertically */}
+      {/* Map image — 600px wide centered in viewport (~105px overhang each side on 390px phone) */}
       {mapUrl && (
         <img
           src={mapUrl}
@@ -58,8 +58,8 @@ export default function MapSheetLayout({
           style={{
             position: 'absolute',
             top: `${imageTop}px`,
-            left: '-40px',
-            width: 'calc(100% + 80px)',
+            left: `calc(50% - ${IMAGE_W / 2}px)`,
+            width: `${IMAGE_W}px`,
             height: `${IMAGE_H}px`,
             pointerEvents: 'none',
             userSelect: 'none',

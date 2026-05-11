@@ -2,10 +2,10 @@ import { useState, useRef, useEffect } from 'react'
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 export const SNAP_HIGH  = 160   // px from top: collapsed (small map strip)
-export const IMAGE_W    = 430   // Mapbox image CSS width — matches viewport, no horizontal overflow
-export const IMAGE_H    = 900   // Mapbox image CSS height — tall enough for any phone
+export const IMAGE_W    = 600   // Mapbox image CSS width — wider than any phone, centered for safety margin
+export const IMAGE_H    = 1000  // Mapbox image CSS height — tall enough for any phone
 export const HANDLE_H   = 28    // handle pill area (pt-3 + pill + pb-2)
-export const PAN_X_MAX  = 40    // horizontal pan limit — image overhangs 40px each side
+export const PAN_X_MAX  = 80    // horizontal pan — image overhangs ~105px each side on 390px phone
 export const PAN_Y_MAX  = 40    // max vertical pan
 
 export const EASING     = 'cubic-bezier(0.32,0.72,0,1)'
