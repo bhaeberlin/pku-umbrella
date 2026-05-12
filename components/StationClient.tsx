@@ -130,9 +130,9 @@ export default function StationClient({
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Umbrella returned!</h1>
         {returnResult.keptDeposit ? (
-          <p className="text-gray-500 mb-8">¥30 deposit kept on file — next borrow is instant.</p>
+          <p className="text-gray-500 mb-8">¥99 deposit kept on file — next borrow is instant.</p>
         ) : (
-          <p className="text-gray-500 mb-8">¥30 deposit refunded. Thank you!</p>
+          <p className="text-gray-500 mb-8">¥99 deposit refunded. Thank you!</p>
         )}
         <p className="text-sm text-gray-400">Thank you for using Líng Sǎn 灵伞</p>
         <button
@@ -202,7 +202,7 @@ export default function StationClient({
           </div>
           <p className="text-gray-500 text-sm">{station.name}</p>
           <div className="w-full bg-gray-50 rounded-2xl p-5 mt-2">
-            <p className="text-3xl font-bold text-gray-900">¥30</p>
+            <p className="text-3xl font-bold text-gray-900">¥99</p>
             <p className="text-gray-500 text-sm mt-1">Deposit — returned when you return the umbrella</p>
             <p className="text-gray-400 text-xs mt-3">No real payment — this is a prototype demo</p>
           </div>
@@ -261,7 +261,7 @@ export default function StationClient({
               disabled={actionLoading}
               className="w-full py-4 rounded-2xl border-2 border-gray-200 text-gray-700 font-semibold text-base active:scale-[0.98] transition-transform disabled:opacity-70"
             >
-              {actionLoading ? '…' : 'Return & refund ¥30'}
+              {actionLoading ? '…' : 'Return & refund ¥99'}
             </button>
           </div>
         }
@@ -278,7 +278,7 @@ export default function StationClient({
 
           <h2 className="text-2xl font-bold text-gray-900 mb-1">Return here?</h2>
           <p className="text-gray-500 text-sm mb-4">{station.name} · {station.description}</p>
-          <p className="text-sm font-medium text-gray-600">What would you like to do with your ¥30 deposit?</p>
+          <p className="text-sm font-medium text-gray-600">What would you like to do with your ¥99 deposit?</p>
           {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
         </div>
       </MapSheetLayout>
