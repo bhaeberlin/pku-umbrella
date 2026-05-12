@@ -10,10 +10,22 @@ export const STATION_COORDS: Record<string, [number, number]> = {
   'PKU-NYC-01':    [116.30601, 39.98797],  // Nongyuan Cantine
 }
 
-export function stationMapUrl(stationId: string): string {
+export function stationMapUrl(stationId: string, otherIds: string[] = []): string {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
   const coords = STATION_COORDS[stationId]
   if (!token || !coords) return ''
   const [lon, lat] = coords
-  return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-s+1d4ed8(${lon},${lat})/${lon},${lat},16/600x1000@2x?access_token=${token}`
+
+  const greyPins = otherIds
+    .filter(id => id !== stationId && STATION_COORDS[id])
+    .map(id => {
+      const [oLon, oLat] = STATION_COORDS[id]
+      return `pin-s+9ca3af(${oLon},${oLat})`
+    })
+    .join(',')
+
+  const selectedPin = `pin-s+1d4ed8(${lon},${lat})`
+  const overlays = greyPins ? `${greyPins},${selectedPin}` : selectedPin
+
+  return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${overlays}/${lon},${lat},16/600x1000@2x?access_token=${token}`
 }

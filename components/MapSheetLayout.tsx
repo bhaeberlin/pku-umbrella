@@ -21,15 +21,16 @@ function ChevronUpIcon() {
 }
 
 export default function MapSheetLayout({
-  stationId, sheet, stickyHeader, children, footer,
+  stationId, otherStationIds = [], sheet, stickyHeader, children, footer,
 }: {
   stationId: string
+  otherStationIds?: string[]
   sheet: ReturnType<typeof useBottomSheet>
   stickyHeader: React.ReactNode
   children: React.ReactNode
   footer?: React.ReactNode
 }) {
-  const mapUrl = stationMapUrl(stationId)
+  const mapUrl = stationMapUrl(stationId, otherStationIds)
   const {
     sheetY, dragging, imageTop, imageScale, mapPanX, mapPanY,
     isExpanded, toggleSnap, handleHandlers, contentHandlers, mapPanHandlers, scrollRef,

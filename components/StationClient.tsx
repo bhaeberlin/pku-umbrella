@@ -242,6 +242,7 @@ export default function StationClient({
     return (
       <MapSheetLayout
         stationId={station.id}
+        otherStationIds={allStations.filter(s => s.id !== station.id).map(s => s.id)}
         sheet={sheet}
         stickyHeader={stationHeader}
         footer={
@@ -288,6 +289,7 @@ export default function StationClient({
   return (
     <MapSheetLayout
       stationId={station.id}
+      otherStationIds={allStations.filter(s => s.id !== station.id).map(s => s.id)}
       sheet={sheet}
       stickyHeader={stationHeader}
       footer={
