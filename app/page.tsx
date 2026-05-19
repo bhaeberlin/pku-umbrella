@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { COLORS } from '@/lib/colors'
 import RefundDepositButton from '@/components/RefundDepositButton'
+import LogoutButton from '@/components/LogoutButton'
 import type { RentalWithDetails } from '@/lib/types'
 
 export default async function HomePage() {
@@ -95,6 +96,7 @@ export default async function HomePage() {
             Log in
           </Link>
         )}
+        {user && <LogoutButton />}
       </div>
     </div>
   )
