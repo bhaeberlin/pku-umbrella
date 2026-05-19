@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { COLORS } from '@/lib/colors'
+import RefundDepositButton from '@/components/RefundDepositButton'
 import type { RentalWithDetails } from '@/lib/types'
 
 export default async function HomePage() {
@@ -8,6 +9,7 @@ export default async function HomePage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   let activeRental: RentalWithDetails | null = null
+  let hasKeptDeposit = false
 
   if (user) {
     const { data } = await supabase
@@ -22,6 +24,16 @@ export default async function HomePage() {
       .eq('status', 'active')
       .maybeSingle()
     if (data) activeRental = data as RentalWithDetails
+
+    if (!activeRental) {
+      const { count } = await supabase
+        .from('rentals')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'returned')
+        .eq('deposit_status', 'kept')
+      hasKeptDeposit = (count ?? 0) > 0
+    }
   }
 
   return (
@@ -39,6 +51,9 @@ export default async function HomePage() {
 
       {/* Active rental card — only shown when logged in with active rental */}
       {activeRental && <ActiveRentalCard rental={activeRental} />}
+
+      {/* Deposit refund — only shown when no active rental and deposit is kept on file */}
+      {hasKeptDeposit && <RefundDepositButton />}
 
       {/* How it works */}
       <div className="mb-8">
