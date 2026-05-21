@@ -14,7 +14,7 @@ export default async function StationsPage() {
       {/* Header */}
       <div className="px-6 pt-12 pb-5 border-b border-gray-100">
         <Link href="/" className="text-sm text-gray-400 mb-3 block active:opacity-60">← Back</Link>
-        <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Líng Sǎn 灵伞</p>
+        <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Husan 护伞</p>
         <h1 className="text-xl font-bold text-gray-900">All stations</h1>
       </div>
 

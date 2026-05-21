@@ -43,11 +43,11 @@ export default async function HomePage() {
       {/* Header */}
       <div className="pt-14 pb-8 flex items-center justify-between">
         <div>
-          <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Líng Sǎn 灵伞</p>
+          <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Husan 护伞</p>
           <h1 className="text-2xl font-bold text-gray-900">Umbrellas @ PKU</h1>
           <p className="text-sm text-gray-400 mt-1">Borrow · Use · Return anywhere</p>
         </div>
-        <img src="/logo.png" alt="Líng Sǎn 灵伞" className="w-12 h-12 rounded-xl flex-shrink-0" />
+        <img src="/logo.png" alt="Husan 护伞" className="w-12 h-12 rounded-xl flex-shrink-0" />
       </div>
 
       {/* Active rental card — only shown when logged in with active rental */}

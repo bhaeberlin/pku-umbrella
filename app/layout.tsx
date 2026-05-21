@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Líng Sǎn 灵伞 · Umbrellas @ PKU',
-  description: 'Borrow and return umbrellas across the PKU campus with Líng Sǎn 灵伞',
+  title: 'Husan 护伞 · Umbrellas @ PKU',
+  description: 'Borrow and return umbrellas across the PKU campus with Husan 护伞',
 }
 
 export const viewport: Viewport = {

@@ -134,7 +134,7 @@ export default function StationClient({
         ) : (
           <p className="text-gray-500 mb-8">¥99 deposit refunded. Thank you!</p>
         )}
-        <p className="text-sm text-gray-400">Thank you for using Líng Sǎn 灵伞</p>
+        <p className="text-sm text-gray-400">Thank you for using Husan 护伞</p>
         <button
           onClick={() => { setActionLoading(true); window.location.href = `/station/${station.id}` }}
           disabled={actionLoading}
@@ -224,11 +224,11 @@ export default function StationClient({
   const stationHeader = (
     <div className="px-6 pt-1 pb-4 flex items-start justify-between gap-3">
       <div>
-        <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Líng Sǎn 灵伞 — Umbrellas @ PKU</p>
+        <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Husan 护伞 — Umbrellas @ PKU</p>
         <h1 className="text-xl font-bold text-gray-900">{station.name}</h1>
         <p className="text-sm text-gray-500 mt-0.5">{station.description}</p>
       </div>
-      <img src="/logo.png" alt="Líng Sǎn 灵伞" className="w-11 h-11 rounded-xl flex-shrink-0" />
+      <img src="/logo.png" alt="Husan 护伞" className="w-11 h-11 rounded-xl flex-shrink-0" />
     </div>
   )
 

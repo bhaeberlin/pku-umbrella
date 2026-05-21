@@ -18,8 +18,8 @@ export async function POST(req: NextRequest) {
   }
 
   const phone_clean = phone.replace('+86', '').replace(/\s/g, '')
-  // Signature 【灵伞】must be registered and approved in the yunpian dashboard first
-  const message = `【灵伞】您的验证码是 ${otp}，5分钟内有效。`
+  // Signature 【护伞】must be registered and approved in the yunpian dashboard first
+  const message = `【护伞】您的验证码是 ${otp}，5分钟内有效。`
 
   const params = new URLSearchParams({
     apikey: process.env.YUNPIAN_APIKEY,
