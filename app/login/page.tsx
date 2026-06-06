@@ -42,13 +42,7 @@ function LoginForm() {
       setError('Please enter an 11-digit Chinese mobile number')
       return
     }
-    setLoading(true)
-    const { error } = await supabase.auth.signInWithOtp({ phone: fullPhone })
-    setLoading(false)
-    if (error) {
-      setError(error.message)
-      return
-    }
+    // No real SMS provider — the verification code is always 000000.
     setStep('otp')
     setCountdown(60)
     setTimeout(() => otpRefs.current[0]?.focus(), 100)
@@ -63,10 +57,21 @@ function LoginForm() {
     }
     const fullPhone = '+86' + phone.replace(/\s/g, '')
     setLoading(true)
-    const { error } = await supabase.auth.verifyOtp({ phone: fullPhone, token, type: 'sms' })
+    const res = await fetch('/api/dev-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: fullPhone, code: token }),
+    })
+    if (!res.ok) {
+      setLoading(false)
+      setError('Incorrect code — please try again')
+      return
+    }
+    const { access_token, refresh_token } = await res.json()
+    const { error } = await supabase.auth.setSession({ access_token, refresh_token })
     setLoading(false)
     if (error) {
-      setError('Incorrect code — please try again')
+      setError('Sign-in failed — please try again')
       return
     }
     router.replace(redirect)
@@ -98,7 +103,7 @@ function LoginForm() {
         <p className="text-gray-500 mt-1">
           {step === 'phone'
             ? "We'll send you a verification code"
-            : `Sent to +86 ${phone}`}
+            : `Enter 000000 to continue`}
         </p>
       </div>
 
