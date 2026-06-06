@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { COLORS } from '@/lib/colors'
 import RefundDepositButton from '@/components/RefundDepositButton'
 import LogoutButton from '@/components/LogoutButton'
+import ScanStationButton from '@/components/ScanStationButton'
 import type { RentalWithDetails } from '@/lib/types'
 
 export default async function HomePage() {
@@ -85,12 +86,15 @@ export default async function HomePage() {
 
       {/* CTAs */}
       <div className="pb-10 space-y-3">
-        <Link
-          href="/stations"
-          className="block w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-center text-lg active:scale-[0.98] transition-transform"
-        >
-          Find a station
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            href="/stations"
+            className="flex-1 py-4 rounded-2xl border-2 border-gray-200 text-gray-700 font-semibold text-center active:scale-[0.98] transition-transform"
+          >
+            Find a station
+          </Link>
+          <ScanStationButton className="flex-1 py-4 rounded-2xl bg-blue-600 text-white font-semibold text-center active:scale-[0.98] transition-transform flex items-center justify-center gap-2" />
+        </div>
         {!userId && (
           <Link
             href="/login"

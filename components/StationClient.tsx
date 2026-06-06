@@ -46,12 +46,9 @@ export default function StationClient({
 }: Props) {
   const router = useRouter()
   const sheet = useBottomSheet()
-  // Pending state for in-app navigations (View rental, Borrow again) so taps
+  // Pending state for in-app navigations (View rental, Back to home) so taps
   // give instant feedback while the next route streams in.
   const [isPending, startTransition] = useTransition()
-  // After a return, force the borrow view immediately while router.refresh()
-  // re-fetches fresh server props (which will clear activeRental).
-  const [forceBorrow, setForceBorrow] = useState(false)
 
   const available: Record<string, number> = {}
   for (const u of umbrellas) {
@@ -67,7 +64,7 @@ export default function StationClient({
   const [error, setError]                 = useState('')
   const [actionLoading, setActionLoading] = useState(false)
 
-  const hasActiveRental = !!activeRental && !forceBorrow
+  const hasActiveRental = !!activeRental
   const hasUmbrellas    = station.available > 0
 
   async function borrow() {
@@ -143,15 +140,11 @@ export default function StationClient({
         )}
         <p className="text-sm text-gray-400">Thank you for using Husan 护伞</p>
         <button
-          onClick={() => startTransition(() => {
-            setForceBorrow(true)
-            setView('borrow')
-            router.refresh()
-          })}
+          onClick={() => startTransition(() => router.push('/'))}
           disabled={isPending}
           className="mt-8 text-blue-600 font-medium text-sm disabled:opacity-50 active:scale-95 transition-transform"
         >
-          {isPending ? 'Loading…' : 'Borrow again →'}
+          {isPending ? 'Loading…' : 'Back to home →'}
         </button>
       </div>
     )

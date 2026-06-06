@@ -27,7 +27,8 @@ export function stationMapUrl(stationId: string, otherIds: string[] = []): strin
   const selectedPin = `pin-s+1d4ed8(${lon},${lat})`
   const overlays = greyPins ? `${greyPins},${selectedPin}` : selectedPin
 
-  // 1x (was @2x) — same 600×1000 box as the CSS layer, ~4× fewer pixels
-  // (~300KB → ~90KB). next/image then re-encodes to WebP and CDN-caches it.
-  return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${overlays}/${lon},${lat},16/600x1000?access_token=${token}`
+  // @2x (1200×2000 source) for crisp retina rendering — the CSS box is 600×1000,
+  // so retina phones need the 2× slot. next/image still re-encodes to WebP and
+  // CDN-caches it, so the byte cost is paid once per device size.
+  return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${overlays}/${lon},${lat},16/600x1000@2x?access_token=${token}`
 }
