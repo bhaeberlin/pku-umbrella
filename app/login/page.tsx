@@ -45,6 +45,8 @@ function LoginForm() {
     // No real SMS provider — the verification code is always 000000.
     setStep('otp')
     setCountdown(60)
+    // Warm the destination route while the user types the code.
+    router.prefetch(redirect)
     setTimeout(() => otpRefs.current[0]?.focus(), 100)
   }
 
@@ -69,11 +71,13 @@ function LoginForm() {
     }
     const { access_token, refresh_token } = await res.json()
     const { error } = await supabase.auth.setSession({ access_token, refresh_token })
-    setLoading(false)
     if (error) {
+      setLoading(false)
       setError('Sign-in failed — please try again')
       return
     }
+    // Keep `loading` true through navigation so the button doesn't flip back to
+    // "Verify" before the destination's loading skeleton takes over.
     router.replace(redirect)
   }
 

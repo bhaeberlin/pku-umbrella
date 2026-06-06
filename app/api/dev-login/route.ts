@@ -34,51 +34,59 @@ export async function POST(req: NextRequest) {
   }
 
   const { email, password } = credsFor(digits)
-  const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  })
-
-  // Find-or-create the user for this phone, and ensure the password is known.
-  const created = await admin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    phone: '+86' + digits,
-    phone_confirm: true,
-  })
-
-  let userId: string
-  if (created.error) {
-    // User already exists (by email or phone) — locate and reset the password.
-    const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 })
-    const existing = list?.users.find(
-      u => u.email === email || u.phone === digits || u.phone === '86' + digits
-    )
-    if (!existing) {
-      return NextResponse.json({ error: created.error.message }, { status: 500 })
-    }
-    userId = existing.id
-    // Also (re)set the email — older users created via the real phone-OTP flow
-    // have no email, so without this the email sign-in below would fail.
-    await admin.auth.admin.updateUserById(userId, { email, password, email_confirm: true })
-  } else {
-    userId = created.data.user.id
-  }
-
-  // Mint a real session by signing in with the known credentials.
   const anon = createClient(SUPABASE_URL, ANON_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
-  const { data: signIn, error: signErr } = await anon.auth.signInWithPassword({ email, password })
-  if (signErr || !signIn.session) {
-    return NextResponse.json({ error: signErr?.message ?? 'sign_in_failed' }, { status: 500 })
+
+  // Fast path — returning phone (the common case): one round-trip. The
+  // password is deterministic, so an existing user signs straight in.
+  let signIn = await anon.auth.signInWithPassword({ email, password })
+
+  // Slow path — user doesn't exist yet, or credentials drifted (e.g. a legacy
+  // phone-only user from the old OTP flow). Create or repair, then retry.
+  if (signIn.error || !signIn.data.session) {
+    const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+
+    const created = await admin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      phone: '+86' + digits,
+      phone_confirm: true,
+    })
+
+    if (created.error) {
+      // Already exists but couldn't sign in — locate the id and reset email +
+      // password. Try profiles first (cheap), fall back to listUsers.
+      const { data: prof } = await admin
+        .from('profiles')
+        .select('id')
+        .eq('phone', '+86' + digits)
+        .maybeSingle()
+
+      let userId = prof?.id as string | undefined
+      if (!userId) {
+        const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 })
+        userId = list?.users.find(
+          u => u.email === email || u.phone === digits || u.phone === '86' + digits
+        )?.id
+      }
+      if (!userId) {
+        return NextResponse.json({ error: created.error.message }, { status: 500 })
+      }
+      await admin.auth.admin.updateUserById(userId, { email, password, email_confirm: true })
+    }
+
+    signIn = await anon.auth.signInWithPassword({ email, password })
+    if (signIn.error || !signIn.data.session) {
+      return NextResponse.json({ error: signIn.error?.message ?? 'sign_in_failed' }, { status: 500 })
+    }
   }
 
-  // Make sure the profile carries the human-readable phone for display.
-  await admin.from('profiles').update({ phone: '+86' + digits }).eq('id', userId)
-
   return NextResponse.json({
-    access_token: signIn.session.access_token,
-    refresh_token: signIn.session.refresh_token,
+    access_token: signIn.data.session.access_token,
+    refresh_token: signIn.data.session.refresh_token,
   })
 }

@@ -6,23 +6,25 @@ import jsQR from 'jsqr'
 import { STATION_COORDS } from '@/lib/stationCoords'
 
 // Extract a known station id from a scanned QR payload.
-// Accepts a full URL (…/station/PKU-…), a bare path, or a bare id.
+// Only this program's own QR codes count: the payload must be a URL on the
+// app's own origin pointing at /station/<id>, with <id> a known station.
+// Anything else (other domains, random QR codes) is ignored.
 function parseStationId(text: string): string | null {
-  let candidate = text.trim()
-  const fromPath = candidate.match(/\/station\/([\w-]+)/i)
-  if (fromPath) {
-    candidate = fromPath[1]
-  } else {
-    try {
-      const u = new URL(candidate)
-      const m = u.pathname.match(/\/station\/([\w-]+)/i)
-      if (m) candidate = m[1]
-    } catch {
-      // not a URL — treat the whole string as a candidate id
-    }
+  let url: URL
+  try {
+    // Resolve against our origin so relative paths ("/station/…") are accepted,
+    // and absolute URLs are checked for an exact origin match below.
+    url = new URL(text.trim(), window.location.origin)
+  } catch {
+    return null
   }
-  candidate = candidate.toUpperCase()
-  return candidate in STATION_COORDS ? candidate : null
+  if (url.origin !== window.location.origin) return null
+
+  const m = url.pathname.match(/^\/station\/([\w-]+)\/?$/i)
+  if (!m) return null
+
+  const id = m[1].toUpperCase()
+  return id in STATION_COORDS ? id : null
 }
 
 export default function QrScanner({ onClose }: { onClose: () => void }) {

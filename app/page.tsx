@@ -60,6 +60,27 @@ export default async function HomePage() {
       {/* Deposit refund — only shown when no active rental and deposit is kept on file */}
       {hasKeptDeposit && <RefundDepositButton />}
 
+      {/* Primary actions */}
+      <div className="space-y-3 mb-8">
+        <div className="flex gap-3">
+          <Link
+            href="/stations"
+            className="flex-1 py-4 rounded-2xl border-2 border-gray-200 text-gray-700 font-semibold text-center active:scale-[0.98] transition-transform"
+          >
+            Find a station
+          </Link>
+          <ScanStationButton className="flex-1 py-4 rounded-2xl bg-blue-600 text-white font-semibold text-center active:scale-[0.98] transition-transform flex items-center justify-center gap-2" />
+        </div>
+        {!userId && (
+          <Link
+            href="/login"
+            className="block w-full py-4 rounded-2xl border-2 border-gray-200 text-gray-700 font-semibold text-center active:scale-[0.98] transition-transform"
+          >
+            Log in
+          </Link>
+        )}
+      </div>
+
       {/* How it works */}
       <div className="mb-8">
         <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-4">How it works</p>
@@ -84,27 +105,12 @@ export default async function HomePage() {
 
       <div className="flex-1" />
 
-      {/* CTAs */}
-      <div className="pb-10 space-y-3">
-        <div className="flex gap-3">
-          <Link
-            href="/stations"
-            className="flex-1 py-4 rounded-2xl border-2 border-gray-200 text-gray-700 font-semibold text-center active:scale-[0.98] transition-transform"
-          >
-            Find a station
-          </Link>
-          <ScanStationButton className="flex-1 py-4 rounded-2xl bg-blue-600 text-white font-semibold text-center active:scale-[0.98] transition-transform flex items-center justify-center gap-2" />
+      {/* Log out pinned to the bottom (only when signed in) */}
+      {userId && (
+        <div className="pb-10">
+          <LogoutButton />
         </div>
-        {!userId && (
-          <Link
-            href="/login"
-            className="block w-full py-4 rounded-2xl border-2 border-gray-200 text-gray-700 font-semibold text-center active:scale-[0.98] transition-transform"
-          >
-            Log in
-          </Link>
-        )}
-        {userId && <LogoutButton />}
-      </div>
+      )}
     </div>
   )
 }
