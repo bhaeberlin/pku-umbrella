@@ -58,7 +58,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: created.error.message }, { status: 500 })
     }
     userId = existing.id
-    await admin.auth.admin.updateUserById(userId, { password, email_confirm: true })
+    // Also (re)set the email — older users created via the real phone-OTP flow
+    // have no email, so without this the email sign-in below would fail.
+    await admin.auth.admin.updateUserById(userId, { email, password, email_confirm: true })
   } else {
     userId = created.data.user.id
   }
