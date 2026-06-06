@@ -3,15 +3,13 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import ColorPicker from './ColorPicker'
 import MapSheetLayout from './MapSheetLayout'
 import { COLORS } from '@/lib/colors'
 import { useBottomSheet } from '@/hooks/useBottomSheet'
-import type { Station, Umbrella, UmbrellaColor, RentalWithDetails } from '@/lib/types'
+import type { Station, UmbrellaColor, RentalWithDetails } from '@/lib/types'
 
 interface Props {
   station: Station
-  umbrellas: Umbrella[]
   userId: string | null
   activeRental: RentalWithDetails | null
   depositOnFile: boolean
@@ -38,7 +36,6 @@ interface ReturnResult {
 
 export default function StationClient({
   station,
-  umbrellas,
   userId,
   activeRental,
   depositOnFile,
@@ -50,14 +47,6 @@ export default function StationClient({
   // give instant feedback while the next route streams in.
   const [isPending, startTransition] = useTransition()
 
-  const available: Record<string, number> = {}
-  for (const u of umbrellas) {
-    if (u.status === 'available') {
-      available[u.color] = (available[u.color] ?? 0) + 1
-    }
-  }
-
-  const [selectedColor, setSelectedColor] = useState<UmbrellaColor | null>(null)
   const [view, setView]                   = useState<View>('borrow')
   const [borrowResult, setBorrowResult]   = useState<BorrowResult | null>(null)
   const [returnResult, setReturnResult]   = useState<ReturnResult | null>(null)
@@ -88,7 +77,7 @@ export default function StationClient({
       const res = await fetch('/api/borrow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stationId: station.id, color: selectedColor }),
+        body: JSON.stringify({ stationId: station.id }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Failed to borrow')
@@ -192,7 +181,6 @@ export default function StationClient({
 
   // ── DEPOSIT OVERLAY ─────────────────────────────────────────────────────────
   if (view === 'deposit') {
-    const colorInfo = selectedColor ? COLORS[selectedColor] : COLORS.black
     return (
       <div className="flex flex-col min-h-dvh px-6 pt-12 pb-8">
         <button onClick={() => setView('borrow')} className="text-gray-400 text-sm mb-8 text-left">
@@ -200,10 +188,6 @@ export default function StationClient({
         </button>
         <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
           <div className="text-5xl mb-2">☂</div>
-          <div className="flex items-center gap-2">
-            <div className={`w-5 h-5 rounded-full ${colorInfo.bg}`} />
-            <span className="font-semibold text-gray-700">{colorInfo.label}</span>
-          </div>
           <p className="text-gray-500 text-sm">{station.name}</p>
           <div className="w-full bg-gray-50 rounded-2xl p-5 mt-2">
             <p className="text-3xl font-bold text-gray-900">¥99</p>
@@ -232,7 +216,7 @@ export default function StationClient({
         <h1 className="text-xl font-bold text-gray-900">{station.name}</h1>
         <p className="text-sm text-gray-500 mt-0.5">{station.description}</p>
       </div>
-      <img src="/logo.png" alt="Husan 护伞" className="w-11 h-11 rounded-xl flex-shrink-0" />
+      <img src="/logo.png?v=2" alt="Husan 护伞" className="w-11 h-11 rounded-xl flex-shrink-0" />
     </div>
   )
 
@@ -315,16 +299,6 @@ export default function StationClient({
           <span className={`w-2 h-2 rounded-full ${hasUmbrellas ? 'bg-green-500' : 'bg-red-500'}`} />
           {hasUmbrellas ? `${station.available} umbrella${station.available !== 1 ? 's' : ''} available` : 'No umbrellas here'}
         </div>
-
-        {hasUmbrellas && (
-          <>
-            <p className="text-sm font-medium text-gray-600 mb-4">Choose a color</p>
-            <ColorPicker available={available} selected={selectedColor} onSelect={setSelectedColor} />
-            <p className="text-center text-sm text-gray-400 mt-3">
-              {selectedColor ? `${COLORS[selectedColor].label} selected` : 'Choose for me'}
-            </p>
-          </>
-        )}
 
         {depositOnFile && userId && (
           <div className="mt-6 bg-blue-50 rounded-xl px-4 py-3 text-sm text-blue-700">

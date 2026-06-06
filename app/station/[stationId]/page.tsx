@@ -14,10 +14,9 @@ export default async function StationPage({ params }: Props) {
   // Wave 1 — everything that doesn't depend on the user, in parallel.
   // getClaims() verifies the JWT locally (cached JWKS) instead of a round-trip
   // to the auth server, so it's effectively free here.
-  const [stationRes, allStationsRes, umbrellasRes, claimsRes] = await Promise.all([
+  const [stationRes, allStationsRes, claimsRes] = await Promise.all([
     supabase.from('stations').select('*').eq('id', stationId).single(),
     supabase.from('stations').select('*').order('name'),
-    supabase.from('umbrellas').select('*').eq('station_id', stationId),
     supabase.auth.getClaims(),
   ])
 
@@ -25,7 +24,6 @@ export default async function StationPage({ params }: Props) {
 
   const station = stationRes.data
   const allStations = allStationsRes.data ?? []
-  const umbrellas = umbrellasRes.data
   const userId = (claimsRes.data?.claims?.sub as string | undefined) ?? null
 
   let activeRental: RentalWithDetails | null = null
@@ -59,7 +57,6 @@ export default async function StationPage({ params }: Props) {
   return (
     <StationClient
       station={station}
-      umbrellas={umbrellas ?? []}
       userId={userId}
       activeRental={activeRental}
       depositOnFile={depositOnFile}

@@ -179,9 +179,11 @@ function LoginForm() {
         <button
           onClick={step === 'phone' ? sendOtp : verifyOtp}
           disabled={loading}
-          className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg disabled:opacity-60 active:scale-[0.98] transition-transform"
+          className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg disabled:opacity-70 active:scale-[0.98] transition-transform"
         >
-          {loading ? '…' : step === 'phone' ? 'Send code' : 'Verify'}
+          {loading
+            ? <span className="flex items-center justify-center gap-2"><span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Verifying…</span>
+            : step === 'phone' ? 'Send code' : 'Verify'}
         </button>
       </div>
     </div>
