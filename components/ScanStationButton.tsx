@@ -12,13 +12,19 @@ function CameraIcon() {
   )
 }
 
-export default function ScanStationButton({ className }: { className?: string }) {
+export default function ScanStationButton({
+  className,
+  label = 'Scan to rent',
+}: {
+  className?: string
+  label?: string
+}) {
   const [open, setOpen] = useState(false)
   return (
     <>
       <button onClick={() => setOpen(true)} className={className}>
         <CameraIcon />
-        Scan to rent
+        {label}
       </button>
       {open && <QrScanner onClose={() => setOpen(false)} />}
     </>

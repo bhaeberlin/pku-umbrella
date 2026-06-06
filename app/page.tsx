@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import RefundDepositButton from '@/components/RefundDepositButton'
 import LogoutButton from '@/components/LogoutButton'
 import ScanStationButton from '@/components/ScanStationButton'
+import UsageCost from '@/components/UsageCost'
 import type { RentalWithDetails } from '@/lib/types'
 
 export default async function HomePage() {
@@ -66,9 +67,12 @@ export default async function HomePage() {
             href="/stations"
             className="flex-1 py-4 rounded-2xl border-2 border-gray-200 text-gray-700 font-semibold text-center active:scale-[0.98] transition-transform"
           >
-            Find a station
+            {activeRental ? 'Return umbrella' : 'Find a station'}
           </Link>
-          <ScanStationButton className="flex-1 py-4 rounded-2xl bg-blue-600 text-white font-semibold text-center active:scale-[0.98] transition-transform flex items-center justify-center gap-2" />
+          <ScanStationButton
+            label={activeRental ? 'Scan to return' : 'Scan to rent'}
+            className="flex-1 py-4 rounded-2xl bg-blue-600 text-white font-semibold text-center active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+          />
         </div>
         {!userId && (
           <Link
@@ -130,6 +134,10 @@ function ActiveRentalCard({ rental }: { rental: RentalWithDetails }) {
           <span className="ml-auto text-sm text-gray-400">{elapsedText}</span>
         </div>
         <p className="text-sm text-gray-500">{rental.borrow_station.name}</p>
+        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-amber-200/70">
+          <span className="text-sm text-gray-500">Usage so far</span>
+          <UsageCost borrowedAt={rental.borrowed_at} className="ml-auto font-semibold text-gray-800" />
+        </div>
         <p className="text-sm text-blue-600 font-medium mt-3">View rental →</p>
       </div>
     </Link>

@@ -34,6 +34,8 @@ export interface Rental {
   returned_at: string | null
   status: RentalStatus
   deposit_status: DepositStatus
+  usage_fee: number
+  fee_paid: boolean
 }
 
 export interface RentalWithDetails extends Rental {

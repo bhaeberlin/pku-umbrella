@@ -1,6 +1,8 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import ReturnStationsList from '@/components/ReturnStationsList'
+import UsageCost from '@/components/UsageCost'
+import { PRICING_LABEL } from '@/lib/pricing'
 import type { RentalWithDetails } from '@/lib/types'
 
 interface Props {
@@ -79,9 +81,17 @@ export default async function RentalPage({ params }: Props) {
             <span className="font-medium text-orange-600">{formatDeadline(r.borrowed_at)}</span>
           </div>
           <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Usage so far</span>
+            <UsageCost borrowedAt={r.borrowed_at} className="font-medium text-gray-800" />
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Rate</span>
+            <span className="font-medium text-gray-800">{PRICING_LABEL}</span>
+          </div>
+          <div className="flex justify-between text-sm">
             <span className="text-gray-500">Deposit</span>
             <span className="font-medium text-gray-800">
-              {r.deposit_status === 'kept' ? '¥30 on file (instant next borrow)' : '¥30 held'}
+              {r.deposit_status === 'kept' ? '¥99 on file (instant next borrow)' : '¥99 held'}
             </span>
           </div>
         </div>
@@ -89,28 +99,7 @@ export default async function RentalPage({ params }: Props) {
         {/* Return stations */}
         <div>
           <h2 className="text-base font-semibold text-gray-800 mb-3">Return to any station</h2>
-          <div className="space-y-2">
-            {(allStations ?? []).map(s => (
-              <Link
-                key={s.id}
-                href={`/station/${s.id}`}
-                prefetch
-                className="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 active:bg-gray-50"
-              >
-                <div>
-                  <p className="font-medium text-gray-800 text-sm">{s.name}</p>
-                  <p className="text-xs text-gray-400">{s.description}</p>
-                </div>
-                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                  s.available < s.capacity
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-gray-100 text-gray-500'
-                }`}>
-                  {s.capacity - s.available} slots free
-                </span>
-              </Link>
-            ))}
-          </div>
+          <ReturnStationsList stations={allStations ?? []} />
         </div>
       </div>
     </div>
