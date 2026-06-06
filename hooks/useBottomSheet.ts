@@ -28,6 +28,39 @@ export function useBottomSheet() {
   const mapPanStartPY    = useRef(0)
   const isScrollLocked   = useRef(false)
 
+  // ── rAF-coalesced drag updates ──────────────────────────────────────────────
+  // Touch events can fire faster than the display refreshes (e.g. 120Hz
+  // ProMotion). Batch the per-touch state writes so at most one render happens
+  // per frame instead of one per touch event.
+  const rafId          = useRef<number | null>(null)
+  const pendingSheetY  = useRef<number | null>(null)
+  const pendingPanX    = useRef<number | null>(null)
+  const pendingPanY    = useRef<number | null>(null)
+  const sheetYRef      = useRef(SNAP_HIGH)   // always holds the latest target
+
+  const flush = () => {
+    rafId.current = null
+    if (pendingSheetY.current !== null) { setSheetY(pendingSheetY.current); pendingSheetY.current = null }
+    if (pendingPanX.current   !== null) { setMapPanX(pendingPanX.current);  pendingPanX.current   = null }
+    if (pendingPanY.current   !== null) { setMapPanY(pendingPanY.current);  pendingPanY.current   = null }
+  }
+  const schedule = () => {
+    if (rafId.current === null) rafId.current = requestAnimationFrame(flush)
+  }
+  const cancelFrame = () => {
+    if (rafId.current !== null) { cancelAnimationFrame(rafId.current); rafId.current = null }
+    pendingSheetY.current = null
+    pendingPanX.current   = null
+    pendingPanY.current   = null
+  }
+  const queueSheetY = (y: number) => { pendingSheetY.current = y; sheetYRef.current = y; schedule() }
+  const queuePan    = (x: number, y: number) => { pendingPanX.current = x; pendingPanY.current = y; schedule() }
+
+  // Keep sheetYRef in sync after any non-drag state change (snap, toggle, reset)
+  useEffect(() => { sheetYRef.current = sheetY }, [sheetY])
+  // Cancel any in-flight frame on unmount
+  useEffect(() => cancelFrame, [])
+
   // Non-passive touchmove on scroll container → preventDefault when sheet-dragging,
   // which stops Safari from triggering pull-to-refresh mid-gesture.
   useEffect(() => {
@@ -64,11 +97,12 @@ export function useBottomSheet() {
     },
     onTouchMove(e: React.TouchEvent) {
       const delta = e.touches[0].clientY - dragStartY.current
-      setSheetY(Math.max(SNAP_HIGH, Math.min(snapLow, dragStartSheet.current + delta)))
+      queueSheetY(Math.max(SNAP_HIGH, Math.min(snapLow, dragStartSheet.current + delta)))
     },
     onTouchEnd() {
+      cancelFrame()
       setDragging(false)
-      snap(sheetY)
+      snap(sheetYRef.current)
     },
   }
 
@@ -92,12 +126,13 @@ export function useBottomSheet() {
         }
       }
       if (isDraggingSheet.current) {
-        setSheetY(Math.max(SNAP_HIGH, Math.min(snapLow, dragStartSheet.current + delta)))
+        queueSheetY(Math.max(SNAP_HIGH, Math.min(snapLow, dragStartSheet.current + delta)))
       }
     },
     onTouchEnd() {
       if (isDraggingSheet.current) {
-        snap(sheetY)
+        cancelFrame()
+        snap(sheetYRef.current)
         isDraggingSheet.current = false
         setDragging(false)
       }
@@ -115,8 +150,10 @@ export function useBottomSheet() {
     onTouchMove(e: React.TouchEvent) {
       const dx = e.touches[0].clientX - mapPanStartX.current
       const dy = e.touches[0].clientY - mapPanStartY.current
-      setMapPanX(Math.max(-PAN_X_MAX, Math.min(PAN_X_MAX, mapPanStartPX.current + dx)))
-      setMapPanY(Math.max(-PAN_Y_MAX, Math.min(PAN_Y_MAX, mapPanStartPY.current + dy)))
+      queuePan(
+        Math.max(-PAN_X_MAX, Math.min(PAN_X_MAX, mapPanStartPX.current + dx)),
+        Math.max(-PAN_Y_MAX, Math.min(PAN_Y_MAX, mapPanStartPY.current + dy)),
+      )
     },
     onTouchEnd() {},
   } : {}

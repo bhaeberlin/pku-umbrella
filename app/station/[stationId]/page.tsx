@@ -11,57 +11,56 @@ export default async function StationPage({ params }: Props) {
   const { stationId } = await params
   const supabase = await createServerSupabaseClient()
 
-  // Fetch station + all stations in parallel
-  const [stationRes, allStationsRes, { data: { user } }] = await Promise.all([
+  // Wave 1 — everything that doesn't depend on the user, in parallel.
+  // getClaims() verifies the JWT locally (cached JWKS) instead of a round-trip
+  // to the auth server, so it's effectively free here.
+  const [stationRes, allStationsRes, umbrellasRes, claimsRes] = await Promise.all([
     supabase.from('stations').select('*').eq('id', stationId).single(),
     supabase.from('stations').select('*').order('name'),
-    supabase.auth.getUser(),
+    supabase.from('umbrellas').select('*').eq('station_id', stationId),
+    supabase.auth.getClaims(),
   ])
 
   if (stationRes.error || !stationRes.data) notFound()
 
   const station = stationRes.data
   const allStations = allStationsRes.data ?? []
-
-  // Fetch umbrellas at this station
-  const { data: umbrellas } = await supabase
-    .from('umbrellas')
-    .select('*')
-    .eq('station_id', stationId)
+  const umbrellas = umbrellasRes.data
+  const userId = (claimsRes.data?.claims?.sub as string | undefined) ?? null
 
   let activeRental: RentalWithDetails | null = null
   let depositOnFile = false
 
-  if (user) {
-    // Fetch active rental with umbrella + station details
-    const { data: rental } = await supabase
-      .from('rentals')
-      .select(`
-        *,
-        umbrella:umbrellas(*),
-        borrow_station:stations!rentals_borrow_station_id_fkey(*),
-        return_station:stations!rentals_return_station_id_fkey(*)
-      `)
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .single()
+  if (userId) {
+    // Wave 2 — the two user-dependent queries in parallel.
+    const [rentalRes, profileRes] = await Promise.all([
+      supabase
+        .from('rentals')
+        .select(`
+          *,
+          umbrella:umbrellas(*),
+          borrow_station:stations!rentals_borrow_station_id_fkey(*),
+          return_station:stations!rentals_return_station_id_fkey(*)
+        `)
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle(),
+      supabase
+        .from('profiles')
+        .select('deposit_on_file')
+        .eq('id', userId)
+        .single(),
+    ])
 
-    activeRental = rental as RentalWithDetails | null
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('deposit_on_file')
-      .eq('id', user.id)
-      .single()
-
-    depositOnFile = profile?.deposit_on_file ?? false
+    activeRental = rentalRes.data as RentalWithDetails | null
+    depositOnFile = profileRes.data?.deposit_on_file ?? false
   }
 
   return (
     <StationClient
       station={station}
       umbrellas={umbrellas ?? []}
-      userId={user?.id ?? null}
+      userId={userId}
       activeRental={activeRental}
       depositOnFile={depositOnFile}
       allStations={allStations}

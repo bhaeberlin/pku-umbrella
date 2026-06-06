@@ -7,34 +7,37 @@ import type { RentalWithDetails } from '@/lib/types'
 
 export default async function HomePage() {
   const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: claimsData } = await supabase.auth.getClaims()
+  const userId = (claimsData?.claims?.sub as string | undefined) ?? null
 
   let activeRental: RentalWithDetails | null = null
   let hasKeptDeposit = false
 
-  if (user) {
-    const { data } = await supabase
-      .from('rentals')
-      .select(`
-        *,
-        umbrella:umbrellas(*),
-        borrow_station:stations!rentals_borrow_station_id_fkey(*),
-        return_station:stations!rentals_return_station_id_fkey(*)
-      `)
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .maybeSingle()
-    if (data) activeRental = data as RentalWithDetails
-
-    if (!activeRental) {
-      const { count } = await supabase
+  if (userId) {
+    // Run both queries in parallel instead of waterfalling the deposit count
+    // off the active-rental result.
+    const [rentalRes, keptRes] = await Promise.all([
+      supabase
+        .from('rentals')
+        .select(`
+          *,
+          umbrella:umbrellas(*),
+          borrow_station:stations!rentals_borrow_station_id_fkey(*),
+          return_station:stations!rentals_return_station_id_fkey(*)
+        `)
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle(),
+      supabase
         .from('rentals')
         .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('status', 'returned')
-        .eq('deposit_status', 'kept')
-      hasKeptDeposit = (count ?? 0) > 0
-    }
+        .eq('deposit_status', 'kept'),
+    ])
+
+    if (rentalRes.data) activeRental = rentalRes.data as RentalWithDetails
+    hasKeptDeposit = !activeRental && (keptRes.count ?? 0) > 0
   }
 
   return (
@@ -88,7 +91,7 @@ export default async function HomePage() {
         >
           Find a station
         </Link>
-        {!user && (
+        {!userId && (
           <Link
             href="/login"
             className="block w-full py-4 rounded-2xl border-2 border-gray-200 text-gray-700 font-semibold text-center active:scale-[0.98] transition-transform"
@@ -96,7 +99,7 @@ export default async function HomePage() {
             Log in
           </Link>
         )}
-        {user && <LogoutButton />}
+        {userId && <LogoutButton />}
       </div>
     </div>
   )

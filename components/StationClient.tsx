@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import ColorPicker from './ColorPicker'
 import MapSheetLayout from './MapSheetLayout'
 import { COLORS } from '@/lib/colors'
@@ -45,6 +46,12 @@ export default function StationClient({
 }: Props) {
   const router = useRouter()
   const sheet = useBottomSheet()
+  // Pending state for in-app navigations (View rental, Borrow again) so taps
+  // give instant feedback while the next route streams in.
+  const [isPending, startTransition] = useTransition()
+  // After a return, force the borrow view immediately while router.refresh()
+  // re-fetches fresh server props (which will clear activeRental).
+  const [forceBorrow, setForceBorrow] = useState(false)
 
   const available: Record<string, number> = {}
   for (const u of umbrellas) {
@@ -60,7 +67,7 @@ export default function StationClient({
   const [error, setError]                 = useState('')
   const [actionLoading, setActionLoading] = useState(false)
 
-  const hasActiveRental = !!activeRental
+  const hasActiveRental = !!activeRental && !forceBorrow
   const hasUmbrellas    = station.available > 0
 
   async function borrow() {
@@ -136,11 +143,15 @@ export default function StationClient({
         )}
         <p className="text-sm text-gray-400">Thank you for using Husan 护伞</p>
         <button
-          onClick={() => { setActionLoading(true); window.location.href = `/station/${station.id}` }}
-          disabled={actionLoading}
+          onClick={() => startTransition(() => {
+            setForceBorrow(true)
+            setView('borrow')
+            router.refresh()
+          })}
+          disabled={isPending}
           className="mt-8 text-blue-600 font-medium text-sm disabled:opacity-50 active:scale-95 transition-transform"
         >
-          {actionLoading ? 'Loading…' : 'Borrow again →'}
+          {isPending ? 'Loading…' : 'Borrow again →'}
         </button>
       </div>
     )
@@ -164,11 +175,11 @@ export default function StationClient({
         <p className="text-gray-500 text-sm mb-2">{station.name}</p>
         <p className="text-gray-400 text-sm mb-8">Return to any station within 24 hours</p>
         <button
-          onClick={() => { setActionLoading(true); router.push(`/rental/${borrowResult.rentalId}`) }}
-          disabled={actionLoading}
+          onClick={() => startTransition(() => router.push(`/rental/${borrowResult.rentalId}`))}
+          disabled={isPending}
           className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg disabled:opacity-70 active:scale-[0.98] transition-transform"
         >
-          {actionLoading
+          {isPending
             ? <span className="flex items-center justify-center gap-2"><span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Loading…</span>
             : 'View my rental'}
         </button>
@@ -334,14 +345,15 @@ export default function StationClient({
           <div className="mt-4">
             <p className="text-gray-500 text-sm mb-4">Try a nearby station:</p>
             {allStations.filter(s => s.id !== station.id && s.available > 0).map(s => (
-              <button
+              <Link
                 key={s.id}
-                onClick={() => router.push(`/station/${s.id}`)}
-                className="w-full text-left px-4 py-3 rounded-xl border border-gray-200 mb-2 active:bg-gray-50"
+                href={`/station/${s.id}`}
+                prefetch
+                className="block w-full text-left px-4 py-3 rounded-xl border border-gray-200 mb-2 active:bg-gray-50"
               >
                 <span className="font-medium text-gray-800">{s.name}</span>
                 <span className="ml-2 text-xs text-green-600">{s.available} available</span>
-              </button>
+              </Link>
             ))}
           </div>
         )}

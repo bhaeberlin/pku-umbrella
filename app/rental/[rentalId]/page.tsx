@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { COLORS } from '@/lib/colors'
@@ -26,8 +27,16 @@ export default async function RentalPage({ params }: Props) {
   const { rentalId } = await params
   const supabase = await createServerSupabaseClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) notFound()
+  // Auth (local JWT verify) and the station list don't depend on each other.
+  const [claimsRes, allStationsRes] = await Promise.all([
+    supabase.auth.getClaims(),
+    supabase.from('stations').select('*').order('available', { ascending: false }),
+  ])
+
+  const userId = (claimsRes.data?.claims?.sub as string | undefined) ?? null
+  if (!userId) notFound()
+
+  const allStations = allStationsRes.data
 
   const { data: rental } = await supabase
     .from('rentals')
@@ -38,7 +47,7 @@ export default async function RentalPage({ params }: Props) {
       return_station:stations!rentals_return_station_id_fkey(*)
     `)
     .eq('id', rentalId)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .single()
 
   if (!rental) notFound()
@@ -47,11 +56,6 @@ export default async function RentalPage({ params }: Props) {
   const colorInfo = COLORS[r.umbrella.color] ?? COLORS.black
   const umbrellaShort = r.umbrella_id.slice(-4).toUpperCase()
   const elapsed = Date.now() - new Date(r.borrowed_at).getTime()
-
-  const { data: allStations } = await supabase
-    .from('stations')
-    .select('*')
-    .order('available', { ascending: false })
 
   return (
     <div className="flex flex-col min-h-dvh">
@@ -92,9 +96,10 @@ export default async function RentalPage({ params }: Props) {
           <h2 className="text-base font-semibold text-gray-800 mb-3">Return to any station</h2>
           <div className="space-y-2">
             {(allStations ?? []).map(s => (
-              <a
+              <Link
                 key={s.id}
                 href={`/station/${s.id}`}
+                prefetch
                 className="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 active:bg-gray-50"
               >
                 <div>
@@ -108,7 +113,7 @@ export default async function RentalPage({ params }: Props) {
                 }`}>
                   {s.capacity - s.available} slots free
                 </span>
-              </a>
+              </Link>
             ))}
           </div>
         </div>

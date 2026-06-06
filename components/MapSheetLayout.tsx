@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useLayoutEffect } from 'react'
+import Image from 'next/image'
 import { stationMapUrl } from '@/lib/stationCoords'
 import { useBottomSheet, IMAGE_W, IMAGE_H, HANDLE_H, TRANSITION } from '@/hooks/useBottomSheet'
 
@@ -50,12 +51,17 @@ export default function MapSheetLayout({
   return (
     <div className="relative h-dvh overflow-hidden bg-gray-200">
 
-      {/* Map image — 600px wide centered in viewport (~105px overhang each side on 390px phone) */}
+      {/* Map image — 600px wide centered in viewport (~105px overhang each side on 390px phone).
+          next/image optimizes to WebP + CDN-caches via the Vercel image optimizer. */}
       {mapUrl && (
-        <img
+        <Image
           src={mapUrl}
           alt="" aria-hidden="true"
+          width={IMAGE_W}
+          height={IMAGE_H}
+          loading="eager"
           draggable={false}
+          unoptimized={false}
           style={{
             position: 'absolute',
             top: `${imageTop}px`,
