@@ -4,9 +4,8 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import MapSheetLayout from './MapSheetLayout'
-import { COLORS } from '@/lib/colors'
 import { useBottomSheet } from '@/hooks/useBottomSheet'
-import type { Station, UmbrellaColor, RentalWithDetails } from '@/lib/types'
+import type { Station, RentalWithDetails } from '@/lib/types'
 
 interface Props {
   station: Station
@@ -26,7 +25,6 @@ type View =
 
 interface BorrowResult {
   rentalId: string
-  color: UmbrellaColor
   umbrellaShort: string
 }
 
@@ -141,19 +139,13 @@ export default function StationClient({
 
   // ── BORROW SUCCESS ──────────────────────────────────────────────────────────
   if (view === 'borrow-success' && borrowResult) {
-    const colorInfo = COLORS[borrowResult.color] ?? COLORS.black
     return (
       <div className="flex flex-col min-h-dvh px-6 pt-20 pb-10 items-center text-center">
         <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6">
           <span className="text-4xl">✓</span>
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Umbrella borrowed!</h1>
-        <div className="flex items-center gap-2 mb-1">
-          <div className={`w-4 h-4 rounded-full ${colorInfo.bg}`} />
-          <span className="font-semibold text-gray-700">
-            #{borrowResult.umbrellaShort} · {colorInfo.label}
-          </span>
-        </div>
+        <p className="font-semibold text-gray-700 mb-1">Umbrella #{borrowResult.umbrellaShort}</p>
         <p className="text-gray-500 text-sm mb-2">{station.name}</p>
         <p className="text-gray-400 text-sm mb-8">Return to any station within 24 hours</p>
         <button
@@ -216,7 +208,7 @@ export default function StationClient({
         <h1 className="text-xl font-bold text-gray-900">{station.name}</h1>
         <p className="text-sm text-gray-500 mt-0.5">{station.description}</p>
       </div>
-      <img src="/logo.png?v=2" alt="Husan 护伞" className="w-11 h-11 rounded-xl flex-shrink-0" />
+      <img src="/logo.png?v=3" alt="Husan 护伞" className="w-11 h-11 rounded-xl flex-shrink-0" />
     </div>
   )
 
@@ -224,7 +216,6 @@ export default function StationClient({
   if (hasActiveRental && activeRental) {
     const elapsed = Math.floor((Date.now() - new Date(activeRental.borrowed_at).getTime()) / 60000)
     const elapsedText = elapsed < 60 ? `${elapsed}m ago` : `${Math.floor(elapsed / 60)}h ${elapsed % 60}m ago`
-    const colorInfo = COLORS[activeRental.umbrella.color] ?? COLORS.black
     const umbrellaShort = activeRental.umbrella_id.slice(-4).toUpperCase()
 
     return (
@@ -258,8 +249,7 @@ export default function StationClient({
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5">
             <p className="text-xs text-amber-700 font-semibold uppercase tracking-wider mb-2">Active rental</p>
             <div className="flex items-center gap-2">
-              <div className={`w-4 h-4 rounded-full ${colorInfo.bg}`} />
-              <span className="font-semibold text-gray-800">#{umbrellaShort} · {colorInfo.label}</span>
+              <span className="font-semibold text-gray-800">Umbrella #{umbrellaShort}</span>
               <span className="text-gray-400 text-sm ml-auto">{elapsedText}</span>
             </div>
           </div>

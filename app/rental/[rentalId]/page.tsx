@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { COLORS } from '@/lib/colors'
 import type { RentalWithDetails } from '@/lib/types'
 
 interface Props {
@@ -53,7 +52,6 @@ export default async function RentalPage({ params }: Props) {
   if (!rental) notFound()
 
   const r = rental as RentalWithDetails
-  const colorInfo = COLORS[r.umbrella.color] ?? COLORS.black
   const umbrellaShort = r.umbrella_id.slice(-4).toUpperCase()
   const elapsed = Date.now() - new Date(r.borrowed_at).getTime()
 
@@ -62,10 +60,7 @@ export default async function RentalPage({ params }: Props) {
       {/* Header */}
       <div className="px-6 pt-12 pb-5 border-b border-gray-100">
         <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Active rental</p>
-        <div className="flex items-center gap-2">
-          <div className={`w-5 h-5 rounded-full ${colorInfo.bg}`} />
-          <h1 className="text-xl font-bold text-gray-900">#{umbrellaShort} · {colorInfo.label}</h1>
-        </div>
+        <h1 className="text-xl font-bold text-gray-900">Umbrella #{umbrellaShort}</h1>
       </div>
 
       <div className="flex-1 px-6 pt-6 pb-10 space-y-6">

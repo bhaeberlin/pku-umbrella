@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { COLORS } from '@/lib/colors'
 import RefundDepositButton from '@/components/RefundDepositButton'
 import LogoutButton from '@/components/LogoutButton'
 import ScanStationButton from '@/components/ScanStationButton'
@@ -51,7 +50,7 @@ export default async function HomePage() {
           <h1 className="text-2xl font-bold text-gray-900">Umbrellas @ PKU</h1>
           <p className="text-sm text-gray-400 mt-1">Borrow · Use · Return anywhere</p>
         </div>
-        <img src="/logo.png?v=2" alt="Husan 护伞" className="w-12 h-12 rounded-xl flex-shrink-0" />
+        <img src="/logo.png?v=3" alt="Husan 护伞" className="w-12 h-12 rounded-xl flex-shrink-0" />
       </div>
 
       {/* Active rental card — only shown when logged in with active rental */}
@@ -116,7 +115,6 @@ export default async function HomePage() {
 }
 
 function ActiveRentalCard({ rental }: { rental: RentalWithDetails }) {
-  const colorInfo = COLORS[rental.umbrella.color] ?? COLORS.black
   const umbrellaShort = rental.umbrella_id.slice(-4).toUpperCase()
   const elapsed = Math.floor((Date.now() - new Date(rental.borrowed_at).getTime()) / 60000)
   const elapsedText = elapsed < 60
@@ -128,8 +126,7 @@ function ActiveRentalCard({ rental }: { rental: RentalWithDetails }) {
       <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 active:opacity-80 transition-opacity">
         <p className="text-xs text-amber-700 font-semibold uppercase tracking-wider mb-3">Active rental</p>
         <div className="flex items-center gap-2 mb-1">
-          <div className={`w-4 h-4 rounded-full ${colorInfo.bg}`} />
-          <span className="font-semibold text-gray-800">#{umbrellaShort} · {colorInfo.label}</span>
+          <span className="font-semibold text-gray-800">Umbrella #{umbrellaShort}</span>
           <span className="ml-auto text-sm text-gray-400">{elapsedText}</span>
         </div>
         <p className="text-sm text-gray-500">{rental.borrow_station.name}</p>
