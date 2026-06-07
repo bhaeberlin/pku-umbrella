@@ -77,8 +77,8 @@ export default async function HomePage() {
           />
           <Step
             icon="☂"
-            title="Pick a color and borrow"
-            desc="Choose your favourite color. A refundable deposit is held and returned when you're done."
+            title="Borrow in one tap"
+            desc="Tap borrow and you're set. A refundable deposit is held on your first borrow and returned whenever you like."
           />
           <Step
             icon="✓"

@@ -88,7 +88,7 @@ export default async function StationsPage() {
                 <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${
                   s.available > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
                 }`}>
-                  {s.available > 0 ? `${s.available} free` : 'Empty'}
+                  {s.available > 0 ? `${s.available} available` : 'Empty'}
                 </span>
               </Link>
             ))}
