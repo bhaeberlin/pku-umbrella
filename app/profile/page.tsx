@@ -8,6 +8,7 @@ import { computeStats } from '@/lib/profileStats'
 import { computeBadges } from '@/lib/badges'
 import { maskPhone, formatDuration } from '@/lib/format'
 import { formatYuan } from '@/lib/pricing'
+import { getDictServer } from '@/lib/i18n/server'
 import type { Profile, Rental } from '@/lib/types'
 
 function PersonIcon() {
@@ -21,6 +22,7 @@ function PersonIcon() {
 
 export default async function ProfilePage() {
   const supabase = await createServerSupabaseClient()
+  const { lang, d } = await getDictServer()
   const { data: claims } = await supabase.auth.getClaims()
   const userId = (claims?.claims?.sub as string | undefined) ?? null
   if (!userId) redirect('/login?redirect=/profile')
@@ -50,8 +52,8 @@ export default async function ProfilePage() {
           <PersonIcon />
         </div>
         <div className="min-w-0">
-          <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Your profile</p>
-          <h1 className="text-xl font-bold text-gray-900">{maskPhone(profile?.phone)}</h1>
+          <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">{d.profile.title}</p>
+          <h1 className="text-xl font-bold text-gray-900">{maskPhone(profile?.phone, d.profile.unknownNumber)}</h1>
         </div>
       </div>
 
@@ -60,7 +62,7 @@ export default async function ProfilePage() {
         <Link href={`/rental/${active.id}`} className="block mb-5">
           <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 active:opacity-80 transition-opacity">
             <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
-            <span className="text-sm font-medium text-gray-800">Umbrella out</span>
+            <span className="text-sm font-medium text-gray-800">{d.profile.umbrellaOut}</span>
             <UsageCost borrowedAt={active.borrowed_at} className="ml-auto text-sm font-semibold text-gray-800" />
             <span className="text-blue-600 text-sm">→</span>
           </div>
@@ -69,55 +71,55 @@ export default async function ProfilePage() {
 
       {/* Usage stats */}
       <div className="grid grid-cols-2 gap-3 mb-6">
-        <Stat label="Borrows" value={String(stats.borrows)} />
-        <Stat label="Total time" value={formatDuration(stats.minutes)} />
-        <Stat label="Total spent" value={formatYuan(stats.spent)} />
-        <Stat label="Stations visited" value={String(stats.stationsVisited)} />
+        <Stat label={d.profile.borrows} value={String(stats.borrows)} />
+        <Stat label={d.profile.totalTime} value={formatDuration(stats.minutes, lang)} />
+        <Stat label={d.profile.totalSpent} value={formatYuan(stats.spent)} />
+        <Stat label={d.profile.stationsVisited} value={String(stats.stationsVisited)} />
       </div>
 
       {/* Deposit situation */}
       {active ? (
         <div className="mb-6 bg-gray-50 border border-gray-200 rounded-2xl p-4">
-          <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-2">Deposit</p>
-          <p className="font-semibold text-gray-800">¥99 held during your rental</p>
-          <p className="text-sm text-gray-500 mt-1">Returned (or kept on file) when you return the umbrella.</p>
+          <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-2">{d.profile.deposit}</p>
+          <p className="font-semibold text-gray-800">{d.profile.depositHeldDuring}</p>
+          <p className="text-sm text-gray-500 mt-1">{d.profile.depositReturnedWhen}</p>
         </div>
       ) : profile?.deposit_on_file ? (
         <RefundDepositButton />
       ) : (
         <div className="mb-6 bg-gray-50 border border-gray-200 rounded-2xl p-4">
-          <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-2">Deposit</p>
-          <p className="font-semibold text-gray-800">No deposit on file</p>
-          <p className="text-sm text-gray-500 mt-1">You&apos;ll pay a refundable ¥99 deposit on your next borrow.</p>
+          <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-2">{d.profile.deposit}</p>
+          <p className="font-semibold text-gray-800">{d.profile.noDeposit}</p>
+          <p className="text-sm text-gray-500 mt-1">{d.profile.noDepositSub}</p>
         </div>
       )}
 
       {/* Badges strip */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-semibold text-gray-800">Badges</h2>
-          <Link href="/profile/badges" className="text-sm text-blue-600 font-medium">See all →</Link>
+          <h2 className="text-base font-semibold text-gray-800">{d.profile.badges}</h2>
+          <Link href="/profile/badges" className="text-sm text-blue-600 font-medium">{d.profile.seeAll}</Link>
         </div>
         {earned.length > 0 ? (
           <div className="flex gap-3 overflow-x-auto pb-1">
             {earned.map(b => (
               <div key={b.id} className="flex flex-col items-center gap-1 flex-shrink-0 w-20">
                 <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-2xl">{b.emoji}</div>
-                <span className="text-[11px] text-gray-600 text-center leading-tight">{b.label}</span>
+                <span className="text-[11px] text-gray-600 text-center leading-tight">{d.badges[b.id].label}</span>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-400">No badges yet — borrow an umbrella to earn your first.</p>
+          <p className="text-sm text-gray-400">{d.profile.noBadges}</p>
         )}
       </div>
 
       {/* Menu */}
       <div className="space-y-2 mb-8">
-        <MenuRow href="/profile/history" label="Rent history" />
-        <MenuRow href="/profile/badges" label="Badges" />
-        <MenuRow href="/profile/help" label="Help & support" />
-        <MenuRow href="/profile/about" label="About Husan" />
+        <MenuRow href="/profile/history" label={d.profile.history} />
+        <MenuRow href="/profile/badges" label={d.profile.badges} />
+        <MenuRow href="/profile/help" label={d.profile.helpSupport} />
+        <MenuRow href="/profile/about" label={d.profile.about} />
       </div>
 
       <div className="flex-1" />

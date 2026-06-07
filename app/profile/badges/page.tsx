@@ -2,10 +2,12 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { computeBadges } from '@/lib/badges'
+import { getDictServer } from '@/lib/i18n/server'
 import type { Profile, Rental } from '@/lib/types'
 
 export default async function BadgesPage() {
   const supabase = await createServerSupabaseClient()
+  const { d } = await getDictServer()
   const { data: claims } = await supabase.auth.getClaims()
   const userId = (claims?.claims?.sub as string | undefined) ?? null
   if (!userId) redirect('/login?redirect=/profile/badges')
@@ -24,9 +26,9 @@ export default async function BadgesPage() {
   return (
     <div className="flex flex-col min-h-dvh pb-28">
       <div className="px-6 pt-12 pb-5 border-b border-gray-100">
-        <Link href="/profile" className="text-sm text-gray-400 mb-3 block active:opacity-60">← Profile</Link>
-        <h1 className="text-xl font-bold text-gray-900">Badges</h1>
-        <p className="text-sm text-gray-400 mt-1">{earnedCount} of {badges.length} earned</p>
+        <Link href="/profile" className="text-sm text-gray-400 mb-3 block active:opacity-60">{d.common.backToProfile}</Link>
+        <h1 className="text-xl font-bold text-gray-900">{d.badgesPage.title}</h1>
+        <p className="text-sm text-gray-400 mt-1">{d.badgesPage.earnedOf(earnedCount, badges.length)}</p>
       </div>
 
       <div className="flex-1 px-6 pt-6">
@@ -45,10 +47,10 @@ export default async function BadgesPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className={`font-semibold text-sm ${b.earned ? 'text-gray-900' : 'text-gray-500'}`}>{b.label}</p>
-                  {b.earned && <span className="text-xs text-blue-600 font-medium">Earned</span>}
+                  <p className={`font-semibold text-sm ${b.earned ? 'text-gray-900' : 'text-gray-500'}`}>{d.badges[b.id].label}</p>
+                  {b.earned && <span className="text-xs text-blue-600 font-medium">{d.badgesPage.earned}</span>}
                 </div>
-                <p className="text-xs text-gray-500 mt-0.5">{b.description}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{d.badges[b.id].description}</p>
                 {!b.earned && b.progress && (
                   <div className="mt-2">
                     <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
@@ -57,7 +59,7 @@ export default async function BadgesPage() {
                         style={{ width: `${Math.round((b.progress.current / b.progress.target) * 100)}%` }}
                       />
                     </div>
-                    <p className="text-[11px] text-gray-400 mt-1">{b.progress.current} / {b.progress.target}</p>
+                    <p className="text-[11px] text-gray-400 mt-1">{d.badgesPage.progress(b.progress.current, b.progress.target)}</p>
                   </div>
                 )}
               </div>

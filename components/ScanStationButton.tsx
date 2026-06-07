@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import QrScanner from './QrScanner'
+import { useDict } from './I18nProvider'
 
 function CameraIcon() {
   return (
@@ -14,17 +15,18 @@ function CameraIcon() {
 
 export default function ScanStationButton({
   className,
-  label = 'Scan to rent',
+  label,
 }: {
   className?: string
   label?: string
 }) {
   const [open, setOpen] = useState(false)
+  const d = useDict()
   return (
     <>
       <button onClick={() => setOpen(true)} className={className}>
         <CameraIcon />
-        {label}
+        {label ?? d.home.scanToRent}
       </button>
       {open && <QrScanner onClose={() => setOpen(false)} />}
     </>

@@ -1,9 +1,10 @@
 // Umbrella usage pricing: the first FREE_MINUTES are free, then RATE_PER_MIN per
 // started minute. The ¥99 deposit is separate and unaffected by this.
 
+// The human-readable pricing label lives in the i18n dictionaries
+// (`d.pricing.label`) so it translates; the numbers below are language-neutral.
 export const FREE_MINUTES = 10
 export const RATE_PER_MIN = 0.2
-export const PRICING_LABEL = 'First 10 min free, then ¥0.2/min'
 
 /** Whole minutes used, rounding partial minutes up. */
 export function usageMinutes(borrowedAt: string, now: number = Date.now()): number {

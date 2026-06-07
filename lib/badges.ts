@@ -1,10 +1,13 @@
 import type { Rental, Profile } from './types'
 
+// Badge ids line up 1:1 with the `badges.*` keys in the i18n dictionaries,
+// where each badge's label + description live (so they translate). This module
+// only computes which badges are earned; the UI looks up the copy by id.
+export type BadgeId = 'first_drop' | 'regular' | 'pro' | 'speedy' | 'explorer' | 'saver'
+
 export interface Badge {
-  id: string
-  label: string
+  id: BadgeId
   emoji: string
-  description: string
   earned: boolean
   progress?: { current: number; target: number }
 }
@@ -25,51 +28,11 @@ export function computeBadges(rentals: Rental[], profile: Profile | null): Badge
   const stationsVisited = stations.size
 
   return [
-    {
-      id: 'first_drop',
-      label: 'First Drop',
-      emoji: '🌂',
-      description: 'Borrow your first umbrella.',
-      earned: borrows >= 1,
-      progress: { current: Math.min(borrows, 1), target: 1 },
-    },
-    {
-      id: 'regular',
-      label: 'Regular',
-      emoji: '☔',
-      description: 'Borrow 5 times.',
-      earned: borrows >= 5,
-      progress: { current: Math.min(borrows, 5), target: 5 },
-    },
-    {
-      id: 'pro',
-      label: 'Umbrella Pro',
-      emoji: '🏆',
-      description: 'Borrow 10 times.',
-      earned: borrows >= 10,
-      progress: { current: Math.min(borrows, 10), target: 10 },
-    },
-    {
-      id: 'speedy',
-      label: 'Speedy Returner',
-      emoji: '⚡',
-      description: 'Return within the free 10 minutes.',
-      earned: speedy,
-    },
-    {
-      id: 'explorer',
-      label: 'Campus Explorer',
-      emoji: '🗺️',
-      description: 'Use 3 different stations.',
-      earned: stationsVisited >= 3,
-      progress: { current: Math.min(stationsVisited, 3), target: 3 },
-    },
-    {
-      id: 'saver',
-      label: 'Deposit Keeper',
-      emoji: '💰',
-      description: 'Keep your deposit on file for instant re-borrows.',
-      earned: keptDeposit,
-    },
+    { id: 'first_drop', emoji: '🌂', earned: borrows >= 1, progress: { current: Math.min(borrows, 1), target: 1 } },
+    { id: 'regular', emoji: '☔', earned: borrows >= 5, progress: { current: Math.min(borrows, 5), target: 5 } },
+    { id: 'pro', emoji: '🏆', earned: borrows >= 10, progress: { current: Math.min(borrows, 10), target: 10 } },
+    { id: 'speedy', emoji: '⚡', earned: speedy },
+    { id: 'explorer', emoji: '🗺️', earned: stationsVisited >= 3, progress: { current: Math.min(stationsVisited, 3), target: 3 } },
+    { id: 'saver', emoji: '💰', earned: keptDeposit },
   ]
 }

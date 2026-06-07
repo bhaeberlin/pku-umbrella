@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useDict } from './I18nProvider'
 
 function UmbrellaIcon({ active }: { active: boolean }) {
   return (
@@ -24,6 +25,7 @@ function UserIcon({ active }: { active: boolean }) {
 
 export default function BottomNav() {
   const pathname = usePathname()
+  const d = useDict()
 
   // Immersive routes own the whole viewport — no bar there.
   if (pathname.startsWith('/station/') || pathname.startsWith('/login')) return null
@@ -34,8 +36,8 @@ export default function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-40 bg-white/95 backdrop-blur border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
       <div className="flex">
-        <Tab href="/" label="Rent" active={rentActive} icon={<UmbrellaIcon active={rentActive} />} />
-        <Tab href="/profile" label="Profile" active={profileActive} icon={<UserIcon active={profileActive} />} />
+        <Tab href="/" label={d.nav.rent} active={rentActive} icon={<UmbrellaIcon active={rentActive} />} />
+        <Tab href="/profile" label={d.nav.profile} active={profileActive} icon={<UserIcon active={profileActive} />} />
       </div>
     </nav>
   )

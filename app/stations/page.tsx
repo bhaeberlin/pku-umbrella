@@ -2,10 +2,12 @@ import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import ReturnStationsList from '@/components/ReturnStationsList'
 import UsageCost from '@/components/UsageCost'
-import { PRICING_LABEL } from '@/lib/pricing'
+import { getDictServer } from '@/lib/i18n/server'
+import { localizeStation } from '@/lib/i18n/stations'
 
 export default async function StationsPage() {
   const supabase = await createServerSupabaseClient()
+  const { lang, d } = await getDictServer()
   const [stationsRes, claimsRes] = await Promise.all([
     supabase.from('stations').select('*').order('name'),
     supabase.auth.getClaims(),
@@ -31,28 +33,28 @@ export default async function StationsPage() {
     return (
       <div className="flex flex-col min-h-dvh">
         <div className="px-6 pt-12 pb-5 border-b border-gray-100">
-          <Link href="/" className="text-sm text-gray-400 mb-3 block active:opacity-60">← Back</Link>
+          <Link href="/" className="text-sm text-gray-400 mb-3 block active:opacity-60">{d.common.back}</Link>
           <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Husan 护伞</p>
-          <h1 className="text-xl font-bold text-gray-900">Return your umbrella</h1>
+          <h1 className="text-xl font-bold text-gray-900">{d.stations.returnTitle}</h1>
         </div>
 
         <div className="flex-1 px-6 pt-6 pb-28 space-y-6">
           {/* Active rental summary */}
           <Link href={`/rental/${activeRental.id}`} className="block">
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 active:opacity-80 transition-opacity">
-              <p className="text-xs text-amber-700 font-semibold uppercase tracking-wider mb-2">Active rental</p>
-              <p className="font-semibold text-gray-800">Umbrella #{umbrellaShort}</p>
+              <p className="text-xs text-amber-700 font-semibold uppercase tracking-wider mb-2">{d.rentalCard.active}</p>
+              <p className="font-semibold text-gray-800">{d.umbrella.label(umbrellaShort)}</p>
               <div className="flex items-center gap-2 mt-2 pt-2 border-t border-amber-200/70">
-                <span className="text-sm text-gray-500">Usage so far</span>
+                <span className="text-sm text-gray-500">{d.rentalCard.usageSoFar}</span>
                 <UsageCost borrowedAt={activeRental.borrowed_at} className="ml-auto font-semibold text-gray-800" />
               </div>
-              <p className="text-xs text-gray-400 mt-1">{PRICING_LABEL}</p>
+              <p className="text-xs text-gray-400 mt-1">{d.pricing.label}</p>
             </div>
           </Link>
 
           <div>
-            <h2 className="text-base font-semibold text-gray-800 mb-3">Return to any station</h2>
-            <ReturnStationsList stations={stations} />
+            <h2 className="text-base font-semibold text-gray-800 mb-3">{d.stations.returnToAny}</h2>
+            <ReturnStationsList stations={stations} lang={lang} />
           </div>
         </div>
       </div>
@@ -63,35 +65,38 @@ export default async function StationsPage() {
   return (
     <div className="flex flex-col min-h-dvh">
       <div className="px-6 pt-12 pb-5 border-b border-gray-100">
-        <Link href="/" className="text-sm text-gray-400 mb-3 block active:opacity-60">← Back</Link>
+        <Link href="/" className="text-sm text-gray-400 mb-3 block active:opacity-60">{d.common.back}</Link>
         <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Husan 护伞</p>
-        <h1 className="text-xl font-bold text-gray-900">All stations</h1>
+        <h1 className="text-xl font-bold text-gray-900">{d.stations.allStations}</h1>
       </div>
 
       <div className="flex-1 px-6 pt-6 pb-28">
         {stations.length === 0 ? (
-          <p className="text-gray-400 text-sm text-center mt-12">No stations found.</p>
+          <p className="text-gray-400 text-sm text-center mt-12">{d.stations.none}</p>
         ) : (
           <div className="space-y-2">
-            {stations.map(s => (
-              <Link
-                key={s.id}
-                href={`/station/${s.id}`}
-                className="flex items-center justify-between px-4 py-3.5 rounded-2xl border border-gray-200 active:bg-gray-50 transition-colors"
-              >
-                <div className="min-w-0 pr-3">
-                  <p className="font-medium text-gray-800 text-sm">{s.name}</p>
-                  {s.description && (
-                    <p className="text-xs text-gray-400 mt-0.5 truncate">{s.description}</p>
-                  )}
-                </div>
-                <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${
-                  s.available > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
-                }`}>
-                  {s.available > 0 ? `${s.available} available` : 'Empty'}
-                </span>
-              </Link>
-            ))}
+            {stations.map(s => {
+              const loc = localizeStation(s, lang)
+              return (
+                <Link
+                  key={s.id}
+                  href={`/station/${s.id}`}
+                  className="flex items-center justify-between px-4 py-3.5 rounded-2xl border border-gray-200 active:bg-gray-50 transition-colors"
+                >
+                  <div className="min-w-0 pr-3">
+                    <p className="font-medium text-gray-800 text-sm">{loc.name}</p>
+                    {loc.description && (
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">{loc.description}</p>
+                    )}
+                  </div>
+                  <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${
+                    s.available > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
+                  }`}>
+                    {s.available > 0 ? d.stations.available(s.available) : d.stations.empty}
+                  </span>
+                </Link>
+              )
+            })}
           </div>
         )}
       </div>

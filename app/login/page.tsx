@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { useDict } from '@/components/I18nProvider'
 
 type Step = 'phone' | 'otp'
 
@@ -19,6 +20,7 @@ function LoginForm() {
   const params = useSearchParams()
   const redirect = params.get('redirect') ?? '/'
   const supabase = createClient()
+  const d = useDict()
 
   const [step, setStep] = useState<Step>('phone')
   const [phone, setPhone] = useState('')
@@ -39,7 +41,7 @@ function LoginForm() {
     setError('')
     const fullPhone = '+86' + phone.replace(/\s/g, '')
     if (!/^\+86\d{11}$/.test(fullPhone)) {
-      setError('Please enter an 11-digit Chinese mobile number')
+      setError(d.login.invalidPhone)
       return
     }
     // No real SMS provider — the verification code is always 000000.
@@ -54,7 +56,7 @@ function LoginForm() {
     setError('')
     const token = otp.join('')
     if (token.length !== 6) {
-      setError('Enter all 6 digits')
+      setError(d.login.enterAll6)
       return
     }
     const fullPhone = '+86' + phone.replace(/\s/g, '')
@@ -66,14 +68,14 @@ function LoginForm() {
     })
     if (!res.ok) {
       setLoading(false)
-      setError('Incorrect code — please try again')
+      setError(d.login.incorrectCode)
       return
     }
     const { access_token, refresh_token } = await res.json()
     const { error } = await supabase.auth.setSession({ access_token, refresh_token })
     if (error) {
       setLoading(false)
-      setError('Sign-in failed — please try again')
+      setError(d.login.signInFailed)
       return
     }
     // Keep `loading` true through navigation so the button doesn't flip back to
@@ -102,12 +104,10 @@ function LoginForm() {
       <div className="mb-10">
         <div className="text-3xl mb-2">☂</div>
         <h1 className="text-2xl font-bold text-gray-900">
-          {step === 'phone' ? 'Enter your phone number' : 'Enter the code'}
+          {step === 'phone' ? d.login.enterPhone : d.login.enterCode}
         </h1>
         <p className="text-gray-500 mt-1">
-          {step === 'phone'
-            ? "We'll send you a verification code"
-            : `Enter 000000 to continue`}
+          {step === 'phone' ? d.login.phoneSub : d.login.codeSub}
         </p>
       </div>
 
@@ -120,7 +120,7 @@ function LoginForm() {
             <input
               type="tel"
               inputMode="numeric"
-              placeholder="138 0013 8000"
+              placeholder={d.login.placeholder}
               value={phone}
               onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
               onKeyDown={e => e.key === 'Enter' && sendOtp()}
@@ -153,7 +153,7 @@ function LoginForm() {
             onClick={() => { setStep('phone'); setOtp(['','','','','','']); setError('') }}
             className="text-sm text-gray-400 text-left"
           >
-            ← Change number
+            {d.login.changeNumber}
           </button>
         </div>
       )}
@@ -165,7 +165,7 @@ function LoginForm() {
       <div className="mt-auto pt-6 flex flex-col gap-3">
         {step === 'otp' && countdown > 0 && (
           <p className="text-center text-sm text-gray-400">
-            Resend code in {countdown}s
+            {d.login.resendIn(countdown)}
           </p>
         )}
         {step === 'otp' && countdown === 0 && (
@@ -173,7 +173,7 @@ function LoginForm() {
             onClick={sendOtp}
             className="text-center text-sm text-blue-600 font-medium"
           >
-            Resend code
+            {d.login.resend}
           </button>
         )}
         <button
@@ -182,8 +182,8 @@ function LoginForm() {
           className="w-full py-4 rounded-2xl bg-blue-600 text-white font-semibold text-lg disabled:opacity-70 active:scale-[0.98] transition-transform"
         >
           {loading
-            ? <span className="flex items-center justify-center gap-2"><span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Verifying…</span>
-            : step === 'phone' ? 'Send code' : 'Verify'}
+            ? <span className="flex items-center justify-center gap-2"><span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />{d.login.verifying}</span>
+            : step === 'phone' ? d.login.sendCode : d.login.verify}
         </button>
       </div>
     </div>

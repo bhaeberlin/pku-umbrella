@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { stationMapUrl } from '@/lib/stationCoords'
 import { useBottomSheet, IMAGE_W, IMAGE_H, HANDLE_H, TRANSITION } from '@/hooks/useBottomSheet'
+import { useDict } from './I18nProvider'
 
 function BackIcon() {
   return (
@@ -48,6 +49,7 @@ export default function MapSheetLayout({
   } = sheet
 
   const router = useRouter()
+  const d = useDict()
   const tr = dragging ? 'none' : TRANSITION
   const stickyHeaderRef = useRef<HTMLDivElement>(null)
 
@@ -72,7 +74,7 @@ export default function MapSheetLayout({
         onTouchStart={e => e.stopPropagation()}
         className="absolute top-4 left-4 z-30 w-9 h-9 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center shadow active:scale-95 transition-transform"
         style={{ touchAction: 'none' }}
-        aria-label="Go back"
+        aria-label={d.map.goBack}
       >
         <BackIcon />
       </button>
@@ -121,7 +123,7 @@ export default function MapSheetLayout({
           onTouchStart={e => e.stopPropagation()}
           className="w-9 h-9 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center shadow active:scale-95 transition-transform"
           style={{ touchAction: 'none' }}
-          aria-label={isExpanded ? 'Collapse map' : 'Expand map'}
+          aria-label={isExpanded ? d.map.collapse : d.map.expand}
         >
           {isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
         </button>

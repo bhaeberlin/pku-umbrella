@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import jsQR from 'jsqr'
 import { STATION_COORDS } from '@/lib/stationCoords'
+import { useDict } from './I18nProvider'
 
 // Extract a known station id from a scanned QR payload.
 // Only this program's own QR codes count: the payload must be a URL on the
@@ -29,10 +30,13 @@ function parseStationId(text: string): string | null {
 
 export default function QrScanner({ onClose }: { onClose: () => void }) {
   const router = useRouter()
+  const d = useDict()
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [hint, setHint] = useState<string | null>(null)
+  // Stored as stable codes (not translated text) so the language can switch
+  // without re-running the camera effect — translation happens at render.
+  const [error, setError] = useState<'notSupported' | 'denied' | 'noCamera' | 'failed' | null>(null)
+  const [notStation, setNotStation] = useState(false)
   const [attempt, setAttempt] = useState(0)   // bump to retry after an error
 
   useEffect(() => {
@@ -71,7 +75,7 @@ export default function QrScanner({ onClose }: { onClose: () => void }) {
               router.push(`/station/${id}`)
               return
             }
-            setHint("That code isn't a PKU station — keep pointing at a station QR.")
+            setNotStation(true)
           }
         }
       }
@@ -81,7 +85,7 @@ export default function QrScanner({ onClose }: { onClose: () => void }) {
     ;(async () => {
       try {
         if (!navigator.mediaDevices?.getUserMedia) {
-          setError('Camera is not supported on this browser.')
+          setError('notSupported')
           return
         }
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
@@ -92,11 +96,11 @@ export default function QrScanner({ onClose }: { onClose: () => void }) {
       } catch (e) {
         const name = (e as DOMException)?.name
         if (name === 'NotAllowedError' || name === 'SecurityError') {
-          setError('Camera permission denied. Enable camera access in your browser settings, then try again.')
+          setError('denied')
         } else if (name === 'NotFoundError' || name === 'OverconstrainedError') {
-          setError('No camera found on this device.')
+          setError('noCamera')
         } else {
-          setError('Could not start the camera. Please try again.')
+          setError('failed')
         }
       }
     })()
@@ -117,10 +121,10 @@ export default function QrScanner({ onClose }: { onClose: () => void }) {
 
       {/* Top bar */}
       <div className="absolute top-0 inset-x-0 flex items-center justify-between p-4 pt-6">
-        <span className="text-white/90 text-sm font-medium drop-shadow">Scan a station QR</span>
+        <span className="text-white/90 text-sm font-medium drop-shadow">{d.qr.scanTitle}</span>
         <button
           onClick={onClose}
-          aria-label="Close scanner"
+          aria-label={d.qr.closeAria}
           className="w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center active:scale-95 transition-transform"
         >
           ✕
@@ -135,26 +139,26 @@ export default function QrScanner({ onClose }: { onClose: () => void }) {
       )}
       {!error && (
         <p className="absolute bottom-16 inset-x-0 text-center text-white/90 text-sm px-8 drop-shadow">
-          {hint ?? 'Point your camera at the QR code on a station'}
+          {notStation ? d.qr.notStation : d.qr.hint}
         </p>
       )}
 
       {/* Error state */}
       {error && (
         <div className="absolute inset-0 bg-black/85 flex flex-col items-center justify-center text-center px-8 gap-5">
-          <p className="text-white text-base leading-relaxed">{error}</p>
+          <p className="text-white text-base leading-relaxed">{error && d.qr[error]}</p>
           <div className="flex gap-3">
             <button
-              onClick={() => { setHint(null); setAttempt(a => a + 1) }}
+              onClick={() => { setNotStation(false); setAttempt(a => a + 1) }}
               className="px-5 py-3 rounded-2xl bg-blue-600 text-white font-semibold active:scale-95 transition-transform"
             >
-              Try again
+              {d.qr.tryAgain}
             </button>
             <button
               onClick={onClose}
               className="px-5 py-3 rounded-2xl border border-white/40 text-white font-semibold active:scale-95 transition-transform"
             >
-              Close
+              {d.qr.close}
             </button>
           </div>
         </div>
