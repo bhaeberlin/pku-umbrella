@@ -36,7 +36,7 @@ export default async function StationsPage() {
           <h1 className="text-xl font-bold text-gray-900">Return your umbrella</h1>
         </div>
 
-        <div className="flex-1 px-6 pt-6 pb-10 space-y-6">
+        <div className="flex-1 px-6 pt-6 pb-28 space-y-6">
           {/* Active rental summary */}
           <Link href={`/rental/${activeRental.id}`} className="block">
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 active:opacity-80 transition-opacity">
@@ -68,7 +68,7 @@ export default async function StationsPage() {
         <h1 className="text-xl font-bold text-gray-900">All stations</h1>
       </div>
 
-      <div className="flex-1 px-6 pt-6 pb-10">
+      <div className="flex-1 px-6 pt-6 pb-28">
         {stations.length === 0 ? (
           <p className="text-gray-400 text-sm text-center mt-12">No stations found.</p>
         ) : (

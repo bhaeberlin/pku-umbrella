@@ -22,6 +22,7 @@ export interface Profile {
   id: string
   phone: string | null
   active_rental_id: string | null
+  deposit_on_file: boolean
 }
 
 export interface Rental {

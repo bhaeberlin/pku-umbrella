@@ -27,11 +27,12 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Protect /rental routes — redirect to login if not authenticated
-  if (!user && request.nextUrl.pathname.startsWith('/rental')) {
+  // Protect /rental and /profile routes — redirect to login if not authenticated
+  const path = request.nextUrl.pathname
+  if (!user && (path.startsWith('/rental') || path.startsWith('/profile'))) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    url.searchParams.set('redirect', request.nextUrl.pathname)
+    url.searchParams.set('redirect', path)
     return NextResponse.redirect(url)
   }
 
@@ -39,5 +40,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/rental/:path*'],
+  matcher: ['/rental/:path*', '/profile/:path*'],
 }

@@ -65,7 +65,7 @@ export default async function RentalPage({ params }: Props) {
         <h1 className="text-xl font-bold text-gray-900">Umbrella #{umbrellaShort}</h1>
       </div>
 
-      <div className="flex-1 px-6 pt-6 pb-10 space-y-6">
+      <div className="flex-1 px-6 pt-6 pb-28 space-y-6">
         {/* Rental details card */}
         <div className="bg-gray-50 rounded-2xl p-5 space-y-3">
           <div className="flex justify-between text-sm">

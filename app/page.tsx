@@ -1,7 +1,5 @@
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import RefundDepositButton from '@/components/RefundDepositButton'
-import LogoutButton from '@/components/LogoutButton'
 import ScanStationButton from '@/components/ScanStationButton'
 import UsageCost from '@/components/UsageCost'
 import type { RentalWithDetails } from '@/lib/types'
@@ -12,37 +10,24 @@ export default async function HomePage() {
   const userId = (claimsData?.claims?.sub as string | undefined) ?? null
 
   let activeRental: RentalWithDetails | null = null
-  let hasKeptDeposit = false
 
   if (userId) {
-    // Run both queries in parallel instead of waterfalling the deposit count
-    // off the active-rental result.
-    const [rentalRes, keptRes] = await Promise.all([
-      supabase
-        .from('rentals')
-        .select(`
-          *,
-          umbrella:umbrellas(*),
-          borrow_station:stations!rentals_borrow_station_id_fkey(*),
-          return_station:stations!rentals_return_station_id_fkey(*)
-        `)
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .maybeSingle(),
-      supabase
-        .from('rentals')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .eq('status', 'returned')
-        .eq('deposit_status', 'kept'),
-    ])
-
-    if (rentalRes.data) activeRental = rentalRes.data as RentalWithDetails
-    hasKeptDeposit = !activeRental && (keptRes.count ?? 0) > 0
+    const { data } = await supabase
+      .from('rentals')
+      .select(`
+        *,
+        umbrella:umbrellas(*),
+        borrow_station:stations!rentals_borrow_station_id_fkey(*),
+        return_station:stations!rentals_return_station_id_fkey(*)
+      `)
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .maybeSingle()
+    if (data) activeRental = data as RentalWithDetails
   }
 
   return (
-    <div className="flex flex-col min-h-dvh px-6">
+    <div className="flex flex-col min-h-dvh px-6 pb-28">
 
       {/* Header */}
       <div className="pt-14 pb-8 flex items-center justify-between">
@@ -56,9 +41,6 @@ export default async function HomePage() {
 
       {/* Active rental card — only shown when logged in with active rental */}
       {activeRental && <ActiveRentalCard rental={activeRental} />}
-
-      {/* Deposit refund — only shown when no active rental and deposit is kept on file */}
-      {hasKeptDeposit && <RefundDepositButton />}
 
       {/* Primary actions */}
       <div className="space-y-3 mb-8">
@@ -107,13 +89,6 @@ export default async function HomePage() {
       </div>
 
       <div className="flex-1" />
-
-      {/* Log out pinned to the bottom (only when signed in) */}
-      {userId && (
-        <div className="pb-10">
-          <LogoutButton />
-        </div>
-      )}
     </div>
   )
 }
