@@ -36,7 +36,7 @@ export default async function HomePage() {
           <h1 className="text-2xl font-bold text-gray-900">Umbrellas @ PKU</h1>
           <p className="text-sm text-gray-400 mt-1">Borrow · Use · Return anywhere</p>
         </div>
-        <img src="/logo.png?v=3" alt="Husan 护伞" className="w-12 h-12 rounded-xl flex-shrink-0" />
+        <img src="/logo.png?v=3" alt="Husan 护伞" fetchPriority="high" decoding="async" className="w-12 h-12 rounded-xl flex-shrink-0" />
       </div>
 
       {/* Active rental card — only shown when logged in with active rental */}

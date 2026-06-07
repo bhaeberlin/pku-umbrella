@@ -8,7 +8,16 @@ import { computeStats } from '@/lib/profileStats'
 import { computeBadges } from '@/lib/badges'
 import { maskPhone, formatDuration } from '@/lib/format'
 import { formatYuan } from '@/lib/pricing'
-import type { Profile, RentalWithDetails } from '@/lib/types'
+import type { Profile, Rental } from '@/lib/types'
+
+function PersonIcon() {
+  return (
+    <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" />
+    </svg>
+  )
+}
 
 export default async function ProfilePage() {
   const supabase = await createServerSupabaseClient()
@@ -18,20 +27,16 @@ export default async function ProfilePage() {
 
   const [profileRes, rentalsRes] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', userId).single(),
+    // Overview only needs raw rental columns (stats, badges, active pill) — no joins.
     supabase
       .from('rentals')
-      .select(`
-        *,
-        umbrella:umbrellas(*),
-        borrow_station:stations!rentals_borrow_station_id_fkey(*),
-        return_station:stations!rentals_return_station_id_fkey(*)
-      `)
+      .select('*')
       .eq('user_id', userId)
       .order('borrowed_at', { ascending: false }),
   ])
 
   const profile = (profileRes.data ?? null) as Profile | null
-  const rentals = (rentalsRes.data ?? []) as RentalWithDetails[]
+  const rentals = (rentalsRes.data ?? []) as Rental[]
   const stats = computeStats(rentals)
   const badges = computeBadges(rentals, profile)
   const earned = badges.filter(b => b.earned)
@@ -41,8 +46,8 @@ export default async function ProfilePage() {
     <div className="flex flex-col min-h-dvh px-6 pb-28">
       {/* Header */}
       <div className="pt-14 pb-6 flex items-center gap-4">
-        <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center text-white text-2xl flex-shrink-0">
-          ☂
+        <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center text-white flex-shrink-0">
+          <PersonIcon />
         </div>
         <div className="min-w-0">
           <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Your profile</p>

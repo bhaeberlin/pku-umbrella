@@ -21,6 +21,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }
 
+  // The user now has a ¥99 deposit with us (held during this rental).
+  await supabase.from('profiles').update({ deposit_on_file: true }).eq('id', user.id)
+
   // Return the rental's umbrella id for the success screen
   const { data: rental } = await supabase
     .from('rentals')

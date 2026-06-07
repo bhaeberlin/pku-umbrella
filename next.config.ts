@@ -11,6 +11,18 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        // The logo is versioned via ?v=N in markup, so it's safe to cache hard.
+        // Avoids the per-navigation revalidation that made it paint late.
+        source: "/logo.png",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

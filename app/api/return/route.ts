@@ -36,5 +36,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: code }, { status: 400 })
   }
 
+  // Deposit follows the user's choice: kept → on file, refunded → cleared.
+  await supabase.from('profiles').update({ deposit_on_file: !!keepDeposit }).eq('id', user.id)
+
   return NextResponse.json({ success: true, fee: fee ?? 0 })
 }

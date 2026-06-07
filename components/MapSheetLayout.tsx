@@ -2,8 +2,17 @@
 
 import { useRef, useLayoutEffect } from 'react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { stationMapUrl } from '@/lib/stationCoords'
 import { useBottomSheet, IMAGE_W, IMAGE_H, HANDLE_H, TRANSITION } from '@/hooks/useBottomSheet'
+
+function BackIcon() {
+  return (
+    <svg className="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  )
+}
 
 function ChevronDownIcon() {
   return (
@@ -38,8 +47,14 @@ export default function MapSheetLayout({
     setSnapLow,
   } = sheet
 
+  const router = useRouter()
   const tr = dragging ? 'none' : TRANSITION
   const stickyHeaderRef = useRef<HTMLDivElement>(null)
+
+  function goBack() {
+    if (typeof window !== 'undefined' && window.history.length > 1) router.back()
+    else router.push('/')
+  }
 
   // Measure header height → set dynamic SNAP_LOW so only header stays visible
   useLayoutEffect(() => {
@@ -50,6 +65,17 @@ export default function MapSheetLayout({
 
   return (
     <div className="relative h-dvh overflow-hidden bg-gray-200">
+
+      {/* Back button — no-reload client navigation to the previous screen */}
+      <button
+        onClick={goBack}
+        onTouchStart={e => e.stopPropagation()}
+        className="absolute top-4 left-4 z-30 w-9 h-9 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center shadow active:scale-95 transition-transform"
+        style={{ touchAction: 'none' }}
+        aria-label="Go back"
+      >
+        <BackIcon />
+      </button>
 
       {/* Map image — 600px wide centered in viewport (~105px overhang each side on 390px phone).
           next/image optimizes to WebP + CDN-caches via the Vercel image optimizer. */}
