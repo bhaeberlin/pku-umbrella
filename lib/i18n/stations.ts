@@ -22,9 +22,9 @@ interface ZhStation {
 const STATION_ZH: Record<string, ZhStation> = {
   'PKU-GUA1-01':   { name: '光华1号楼', description: '正门，左侧' },
   'PKU-SEGATE-01': { name: '东南门', description: '门内，右侧' },
-  'PKU-GV3-01':    { name: '全球村3号楼', description: '正门，右侧' },
-  'PKU-GV4-01':    { name: '全球村4号楼', description: '正门，前台旁' },
-  'PKU-GV1-01':    { name: '全球村1号楼', description: '正门，右侧' },
+  'PKU-GV3-01':    { name: '中关新园3号楼', description: '正门，右侧' },
+  'PKU-GV4-01':    { name: '中关新园4号楼', description: '正门，前台旁' },
+  'PKU-GV1-01':    { name: '中关新园1号楼', description: '正门，右侧' },
   'PKU-3WC-01':    { name: '3W 咖啡', description: '室外入口，左侧' },
   'PKU-YNC-01':    { name: '燕南食堂', description: '正门，右侧' },
   'PKU-NYC-01':    { name: '农园食堂', description: '正门外' },
