@@ -8,6 +8,16 @@ export const STATION_COORDS: Record<string, [number, number]> = {
   'PKU-3WC-01':    [116.30763, 39.98837],  // 3W Cafe
   'PKU-YNC-01':    [116.30429, 39.98926],  // Yannan Cantine
   'PKU-NYC-01':    [116.30601, 39.98797],  // Nongyuan Cantine
+  'PKU-WGATE-01':  [116.29863, 39.99335],  // Historic West Gate
+  'PKU-SWGATE-01': [116.29938, 39.98642],  // Southwest Gate
+  'PKU-4FC-01':    [116.30213, 39.98696],  // Four-storey cantine
+  'PKU-FMART-01':  [116.30303, 39.98743],  // Family Mart at the dorms
+  'PKU-FACH-01':   [116.30653, 39.99294],  // Faculty House
+  'PKU-GUA2-01':   [116.30725, 39.99472],  // Guanghua Building 2
+  'PKU-SGATE-01':  [116.30546, 39.98522],  // South Gate
+  'PKU-DORM35-01': [116.30330, 39.98651],  // Student Dorms Building 35
+  'PKU-HOLLY-01':  [116.30085, 39.98764],  // Former Cafe Hollywood
+  'PKU-LUCKIN-01': [116.30666, 39.99111],  // Luckin Coffee
 }
 
 export function stationMapUrl(stationId: string, otherIds: string[] = []): string {
