@@ -57,7 +57,7 @@ export default function LanguageToggle() {
     <button
       onClick={() => setLang(target)}
       aria-label={target === 'zh' ? '切换到中文' : 'Switch to English'}
-      className="fixed z-40 active:scale-90 transition-transform"
+      className="absolute z-40 active:scale-90 transition-transform"
       style={{
         top: 'calc(env(safe-area-inset-top) + 10px)',
         right: 'calc(env(safe-area-inset-right) + 12px)',
